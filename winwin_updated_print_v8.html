@@ -1,0 +1,2594 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Win-Win Калькулятор v5 — Матриця цін</title>
+  <style>
+    :root{
+      --primary:#1565c0;
+      --primary2:#0d47a1;
+      --bg:#f5f5f5;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow:0 10px 25px rgba(15,23,42,.10);
+      --radius:12px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select{font:inherit}
+    .app{min-height:100vh;display:flex;flex-direction:column}
+    .topbar{background:var(--primary);color:#fff;height:64px;display:flex;align-items:center;padding:0 14px;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+    .icon-btn{width:40px;height:40px;border:0;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+    .icon-btn:hover{background:rgba(255,255,255,.22)}
+    .title{font-size:18px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .content{flex:1;display:flex;justify-content:center;padding:18px}
+    .screen{width:min(1200px,100%)}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden}
+    .pad{padding:16px}
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .spacer{flex:1}
+    .btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;background:#f3f4f6;color:#111827}
+    .btn:hover{filter:brightness(.98)}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary2)}
+    .btn-danger{background:#fee2e2;color:#991b1b}
+    .btn-danger:hover{background:#fecaca}
+    .btn-outline{background:#fff;color:var(--primary);border:1px solid rgba(21,101,192,.45)}
+    .btn-outline:hover{background:rgba(21,101,192,.06)}
+    .fab{margin:20px auto 0;border-radius:10px;padding:11px 18px;background:var(--primary);color:#fff;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 10px 18px rgba(21,101,192,.25)}
+    .fab:hover{background:var(--primary2)}
+    .empty-cart{height:calc(100vh - 64px - 36px);min-height:520px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .cart-icon{width:220px;height:220px;opacity:.35}
+    .list{display:flex;flex-direction:column}
+    .item{display:grid;grid-template-columns:100px 1fr auto;gap:12px;padding:12px 14px;border-top:1px solid var(--line);align-items:center}
+    .item:first-child{border-top:0}
+    .previewBox{width:100px;height:100px;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .itemTitle{font-weight:600}
+    .itemSub{font-size:12px;color:var(--muted)}
+    .priceTag{font-weight:700;white-space:nowrap}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#f3f4f6;color:#111827;font-size:12px;border:1px solid var(--line)}
+    .footerTotals{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:14px;border-top:1px solid var(--line);background:#fafafa}
+    .totalBig{font-size:18px;font-weight:800}
+    .tabs{display:flex;background:var(--primary);color:#fff;padding:0 10px;gap:8px;justify-content:center;flex-wrap:wrap}
+    .tab{padding:12px 14px;border-bottom:3px solid transparent;cursor:pointer;opacity:.9;white-space:nowrap}
+    .tab.active{border-bottom-color:#fff;opacity:1;font-weight:700}
+    .editorBody{padding:16px}
+    .grid2{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:920px){.grid2{grid-template-columns:1fr 1fr}}
+    .grid3{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:700px){.grid3{grid-template-columns:1fr 1fr}}
+    @media(min-width:1000px){.grid3{grid-template-columns:1fr 1fr 1fr}}
+    .panel{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+    .panelHead{padding:10px 12px;border-bottom:1px solid var(--line);background:#fafafa;font-weight:700}
+    .panelBody{padding:12px}
+    .field{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;margin-bottom:10px}
+    @media(max-width:520px){.field{grid-template-columns:1fr}}
+    input[type="number"],input[type="text"],select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    input:focus,select:focus{outline:none;border-color:rgba(21,101,192,.55);box-shadow:0 0 0 3px rgba(21,101,192,.12)}
+    .stepper{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+    .stepBtn{width:42px;height:42px;border-radius:999px;border:0;background:var(--primary);color:#fff;cursor:pointer;font-size:20px;line-height:1;box-shadow:0 6px 12px rgba(21,101,192,.18)}
+    .stepBtn:hover{background:var(--primary2)}
+    .stepVal{min-width:36px;text-align:center;font-weight:800}
+    .shapeGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px}
+    .shapeTool{border:2px solid var(--line);border-radius:12px;padding:10px;cursor:pointer;background:#fff;text-align:center;font-size:11px;transition:all .15s}
+    .shapeTool:hover{border-color:#90caf9}
+    .shapeTool.active{border-color:var(--primary);box-shadow:0 0 0 3px rgba(21,101,192,.15);background:#e3f2fd}
+    .shapeTool svg{width:50px;height:50px;display:block;margin:0 auto 6px}
+    .sashGrid{display:grid;grid-template-columns:repeat(5,56px);grid-template-rows:repeat(4,56px);gap:0;border:2px solid #333;background:#fff;margin:10px 0}
+    .sashCell{border-right:1px solid #333;border-bottom:1px solid #333;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:10px}
+    .sashCell:nth-child(5n){border-right:0}
+    .sashCell:nth-last-child(-n+5){border-bottom:0}
+    .sashCell:hover{background:#e3f2fd}
+    .sashCell.used{background:#bbdefb}
+    .sashCell svg{width:40px;height:40px}
+    .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35}
+    .drawingBox{display:flex;justify-content:center;align-items:center;padding:10px;background:#fff;border:1px solid var(--line);border-radius:12px;min-height:450px}
+    @media(max-width:920px){.drawingBox{min-height:350px}}
+    .kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .kpi4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+    @media(max-width:600px){.kpi4{grid-template-columns:1fr 1fr}}
+    .kpi .k,.kpi4 .k{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fafafa}
+    .k .v{font-weight:900;font-size:16px}
+    .k .l{font-size:11px;color:var(--muted)}
+    .modalBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:1000}
+    .modalBackdrop.show{display:flex}
+    .modal{width:min(860px,100%);background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
+    .modalHead{background:var(--primary);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:12px}
+    .modalHead .modalTitle{font-weight:800;flex:1}
+    .modalBody{padding:14px;max-height:70vh;overflow-y:auto}
+    .modalFoot{padding:12px 14px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;background:#fafafa}
+    @media print{body{background:#fff}.no-print{display:none !important}}
+    .priceBreakdown{font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:#f9fafb;border-radius:8px;max-height:180px;overflow-y:auto}
+    .priceBreakdown div{margin:2px 0;display:flex;justify-content:space-between}
+    .priceBreakdown b{color:#333}
+    .dimInputs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+    .dimInputs label{display:flex;flex-direction:column;font-size:11px;color:var(--muted)}
+    .dimInputs input{width:80px;padding:6px 8px;font-size:13px}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar no-print">
+    <button class="icon-btn" id="backBtn" title="Назад" style="display:none">←</button>
+    <div class="title" id="topTitle">Win-Win Калькулятор v5</div>
+    <button class="icon-btn" id="manageProfilesBtn" title="Керувати профілями">⚙</button>
+    <button class="icon-btn" id="saveBtn" title="Зберегти" style="display:none">✓</button>
+  </div>
+
+  <div class="content">
+    <div class="screen">
+      <!-- CART -->
+      <div id="screenCart" class="card">
+        <div id="cartEmpty" class="empty-cart">
+          <svg class="cart-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          <button class="fab" id="addFromEmpty"><span style="font-weight:900;font-size:18px">＋</span> Додати конструкцію</button>
+          <div class="muted" style="text-align:center;font-size:13px;margin-top:10px">Прямокутні, арочні, трикутні, трапецієподібні</div>
+        </div>
+        <div id="cartFilled" style="display:none">
+          <div class="pad">
+            <div class="row">
+              <span class="chip" id="orderNoChip">№ —</span>
+              <span class="chip" id="orderDateChip">Дата: —</span>
+              <div class="spacer"></div>
+              <button class="btn btn-outline" id="printBtn">🖨️ Друк</button>
+              <button class="btn btn-danger" id="clearOrderBtn">Очистити</button>
+            </div>
+          </div>
+          <div class="list" id="itemsList"></div>
+          <div class="footerTotals">
+            <div><div class="muted" style="font-size:12px">Підсумок</div><div class="totalBig" id="sumTotal">0.00 грн</div></div>
+            <button class="btn btn-primary" id="addFromList">＋ Додати</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDITOR -->
+      <div id="screenEditor" class="card" style="display:none">
+        <div class="tabs no-print">
+          <div class="tab active" data-tab="shape">1. Форма</div>
+          <div class="tab" data-tab="sections">2. Секції</div>
+          <div class="tab" data-tab="preview">3. Перегляд</div>
+          <div class="tab" data-tab="params">4. Параметри</div>
+        </div>
+        <div class="editorBody">
+          <!-- SHAPE TAB -->
+          <div class="tabPanel" id="tab_shape">
+            <div class="grid2">
+              <div class="panel">
+                <div class="panelHead">Оберіть форму конструкції</div>
+                <div class="panelBody">
+                  <div class="shapeGrid" id="shapeGrid"></div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panelHead">Розміри (мм)</div>
+                <div class="panelBody" id="dimFields"></div>
+              </div>
+            </div>
+            <div class="row" style="margin-top:14px;justify-content:flex-end">
+              <button class="btn btn-primary" id="toSections">Далі: Секції →</button>
+            </div>
+          </div>
+
+          <!-- SECTIONS TAB -->
+          <div class="tabPanel" id="tab_sections" style="display:none">
+            <div class="grid2">
+              <div class="panel">
+                <div class="panelHead">Тип секцій</div>
+                <div class="panelBody">
+                  <div class="shapeGrid" id="sashPalette"></div>
+                  <div class="hint">Оберіть тип та клацайте на секції щоб змінити</div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panelHead">Секції конструкції</div>
+                <div class="panelBody">
+                  <div id="sectionPreview" style="min-height:200px;display:flex;align-items:center;justify-content:center"></div>
+                </div>
+              </div>
+            </div>
+            <div class="row" style="margin-top:14px">
+              <button class="btn" id="backToShape">← Форма</button>
+              <div class="spacer"></div>
+              <button class="btn btn-primary" id="toPreview">Далі: Перегляд →</button>
+            </div>
+          </div>
+
+          <!-- PREVIEW TAB -->
+          <div class="tabPanel" id="tab_preview" style="display:none">
+            <div class="grid2">
+              <div class="panel">
+                <div class="panelHead">Конструкція</div>
+                <div class="panelBody">
+                  <div class="drawingBox" id="svgHost"></div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panelHead">Вартість</div>
+                <div class="panelBody">
+                  <div class="field">
+                    <div class="muted">Кількість</div>
+                    <div class="stepper">
+                      <button class="stepBtn" id="qtyMinus">−</button>
+                      <div class="stepVal" id="qtyVal">1</div>
+                      <button class="stepBtn" id="qtyPlus">＋</button>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="muted">Курс EUR</div>
+                    <input type="number" id="eurRate" value="44.5" step="0.1" style="width:100px">
+                  </div>
+                  <div class="kpi4">
+                    <div class="k"><div class="v" id="kArea">0.00</div><div class="l">м²</div></div>
+                    <div class="k"><div class="v" id="kPriceEur">0.00</div><div class="l">EUR/шт</div></div>
+                    <div class="k"><div class="v" id="kPrice">0.00</div><div class="l">грн/шт</div></div>
+                    <div class="k"><div class="v" id="kTotal">0.00</div><div class="l">грн разом</div></div>
+                  </div>
+                  <div class="priceBreakdown" id="priceDetails"></div>
+                </div>
+              </div>
+            </div>
+            <div class="row" style="margin-top:14px">
+              <button class="btn" id="backToSections">← Секції</button>
+              <div class="spacer"></div>
+              <button class="btn btn-primary" id="toParams">Далі: Параметри →</button>
+            </div>
+          </div>
+
+          <!-- PARAMS TAB -->
+          <div class="tabPanel" id="tab_params" style="display:none">
+            <div class="grid2">
+              <div class="panel">
+                <div class="panelHead">Профіль</div>
+                <div class="panelBody">
+                  <select id="pProfile" style="width:100%"></select>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panelHead">Фурнітура</div>
+                <div class="panelBody">
+                  <select id="pHardware" style="width:100%">
+                    <option value="CORVUS">CORVUS</option>
+                    <option value="UNI" selected>UNI (альтернатива)</option>
+                    <option value="VORNE">VORNE (двері)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="panel" style="margin-top:14px">
+              <div class="panelHead">Склопакети по секціях</div>
+              <div class="panelBody" id="glassPerSection"></div>
+            </div>
+            <div class="panel" style="margin-top:14px">
+              <div class="panelHead">Коментар</div>
+              <div class="panelBody">
+                <input id="pNote" type="text" placeholder="Монтаж, доставка, побажання...">
+              </div>
+            </div>
+            <div class="row" style="margin-top:14px">
+              <button class="btn" id="backToPreview">← Перегляд</button>
+              <div class="spacer"></div>
+              <button class="btn btn-primary" id="saveItem">✓ Зберегти в замовлення</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUSTOMER MODAL -->
+      <div class="modalBackdrop no-print" id="custModal">
+        <div class="modal">
+          <div class="modalHead"><div class="modalTitle">Дані замовника</div><button class="icon-btn" id="custClose">✕</button></div>
+          <div class="modalBody">
+            <div class="field"><div class="muted">ПІБ</div><input type="text" id="cName"></div>
+            <div class="field"><div class="muted">Телефон</div><input type="text" id="cPhone"></div>
+            <div class="field"><div class="muted">Адреса</div><input type="text" id="cAddr"></div>
+          </div>
+          <div class="modalFoot">
+            <button class="btn" id="custCancel">Скасувати</button>
+            <button class="btn btn-primary" id="custSave">Друкувати</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE MANAGER MODAL -->
+      <div class="modalBackdrop no-print" id="profileModal">
+        <div class="modal" style="max-width:900px">
+          <div class="modalHead">
+            <div class="modalTitle">Керування профілями</div>
+            <button class="icon-btn" id="profileClose">✕</button>
+          </div>
+          <div class="modalBody" style="max-height:80vh">
+            <div style="margin-bottom:16px">
+              <button class="btn btn-primary" id="addProfileBtn">+ Додати профіль</button>
+              <button class="btn" id="resetProfilesBtn">Скинути до дефолтних</button>
+            </div>
+            <div id="profileList"></div>
+            
+            <!-- Profile editor -->
+            <div id="profileEditor" style="display:none;margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fafafa">
+              <h3 style="margin:0 0 12px" id="profileEditorTitle">Новий профіль</h3>
+              <div class="field">
+                <div class="muted">ID профілю</div>
+                <input type="text" id="peId" placeholder="Наприклад: WHS72">
+              </div>
+              <div class="field">
+                <div class="muted">Назва профілю</div>
+                <input type="text" id="peName" placeholder="Наприклад: WHS 72 Білий (4-16-4)">
+              </div>
+              
+              <div style="margin-top:16px">
+                <h4 style="margin:0 0 8px">Матриця цін: Глухе вікно (fix)</h4>
+                <div class="hint">Формат: ширина×висота=ціна, кожен з нової строки. Наприклад: 500×500=789.25</div>
+                <textarea id="peFixMatrix" rows="5" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-family:monospace"></textarea>
+              </div>
+              
+              <div style="margin-top:16px">
+                <h4 style="margin:0 0 8px">Матриця цін: Глухе + імпост (fixImpost)</h4>
+                <textarea id="peFixImpostMatrix" rows="5" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-family:monospace"></textarea>
+              </div>
+              
+              <div style="margin-top:16px">
+                <h4 style="margin:0 0 8px">Матриця цін: Глухе + ПВ стулка (sash)</h4>
+                <textarea id="peSashMatrix" rows="5" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-family:monospace"></textarea>
+              </div>
+              
+              <div style="margin-top:16px;display:flex;gap:10px">
+                <button class="btn btn-primary" id="peSave">Зберегти профіль</button>
+                <button class="btn" id="peCancel">Скасувати</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const SHAPES = [
+  {id:'rect', name:'Прямокутник', icon:'rect'},
+  {id:'arch', name:'Арка', icon:'arch'},
+  {id:'archFull', name:'Арка повна', icon:'archFull'},
+  {id:'triangle', name:'Трикутник', icon:'triangle'},
+  {id:'triangleRight', name:'Трик. правий', icon:'triangleRight'},
+  {id:'triangleLeft', name:'Трик. лівий', icon:'triangleLeft'},
+  {id:'trapezoid', name:'Трапеція', icon:'trapezoid'},
+  {id:'trapezoidTop', name:'Трап. верхня', icon:'trapezoidTop'},
+  {id:'pentagon', name:'П\'ятикутник', icon:'pentagon'},
+  {id:'hexagon', name:'Шестикутник', icon:'hexagon'},
+  {id:'round', name:'Коло', icon:'round'},
+  {id:'halfRound', name:'Півколо', icon:'halfRound'},
+];
+
+const SASH_TYPES = [
+  {id:'fix', name:'Глухе', color:'#e3f2fd'},
+  {id:'left', name:'Ліва ПВ', color:'#bbdefb'},
+  {id:'right', name:'Права ПВ', color:'#90caf9'},
+  {id:'top', name:'Верхнє ПВ', color:'#64b5f6'},
+  {id:'bottom', name:'Фрамуга', color:'#42a5f5'},
+];
+
+const SYSTEMS = [
+  {id:"STEKO4S", name:"Steko 4s (4-16-4)"},
+  {id:"WHS60", name:"WHS 60 Білий (4-16-4)"},
+  {id:"WHS60LOWE", name:"WHS 60 Білий (4-16-4 Low-E)"},
+];
+
+// ============================================
+// МАТРИЦІ ЦІН (реальні дані з програми прорахунку)
+// ============================================
+// Структура: { profileId: { fix: [...], fixImpost: [...], sash: [...] } }
+// Кожен елемент: {w, h, price} - ширина, висота в мм, ціна в грн
+
+const DEFAULT_PRICE_MATRICES = {
+  "STEKO4S": {
+    name: "Steko 4s (4-16-4)",
+    // Глухе вікно (без імпоста, без стулки)
+    fix: [
+      {w: 500, h: 500, price: 789.25},
+      {w: 700, h: 700, price: 1227.09},
+      {w: 900, h: 900, price: 1745.83},
+      {w: 1200, h: 1200, price: 2672.76},
+    ],
+    // Глухе вікно з вертикальним імпостом
+    fixImpost: [
+      {w: 500, h: 500, price: 1033.97},
+      {w: 700, h: 700, price: 1547.56},
+      {w: 900, h: 900, price: 2140.66},
+      {w: 1200, h: 1200, price: 3180.63},
+      {w: 1400, h: 1400, price: 3973.49},
+    ],
+    // Вікно з імпостом і стулкою (ПВ)
+    sash: [
+      {w: 1000, h: 1000, price: 3642.34},
+      {w: 1200, h: 1200, price: 4527.02},
+      {w: 1400, h: 1400, price: 5484.32},
+      {w: 1600, h: 1600, price: 6561.41},
+      {w: 1700, h: 1700, price: 7093.88},
+    ]
+  },
+  "WHS60": {
+    name: "WHS 60 Білий (4-16-4)",
+    fix: [
+      {w: 500, h: 500, price: 750.00},
+      {w: 700, h: 700, price: 1165.00},
+      {w: 900, h: 900, price: 1658.00},
+      {w: 1200, h: 1200, price: 2539.00},
+    ],
+    fixImpost: [
+      {w: 500, h: 500, price: 982.00},
+      {w: 700, h: 700, price: 1470.00},
+      {w: 900, h: 900, price: 2033.00},
+      {w: 1200, h: 1200, price: 3021.00},
+      {w: 1400, h: 1400, price: 3774.00},
+    ],
+    sash: [
+      {w: 1000, h: 1000, price: 3460.00},
+      {w: 1200, h: 1200, price: 4300.00},
+      {w: 1400, h: 1400, price: 5210.00},
+      {w: 1600, h: 1600, price: 6233.00},
+      {w: 1700, h: 1700, price: 6739.00},
+    ]
+  },
+  "WHS60LOWE": {
+    name: "WHS 60 Білий (4-16-4 Low-E)",
+    fix: [
+      {w: 500, h: 500, price: 840.00},
+      {w: 700, h: 700, price: 1305.00},
+      {w: 900, h: 900, price: 1857.00},
+      {w: 1200, h: 1200, price: 2843.00},
+    ],
+    fixImpost: [
+      {w: 500, h: 500, price: 1100.00},
+      {w: 700, h: 700, price: 1646.00},
+      {w: 900, h: 900, price: 2278.00},
+      {w: 1200, h: 1200, price: 3384.00},
+      {w: 1400, h: 1400, price: 4228.00},
+    ],
+    sash: [
+      {w: 1000, h: 1000, price: 3875.00},
+      {w: 1200, h: 1200, price: 4817.00},
+      {w: 1400, h: 1400, price: 5836.00},
+      {w: 1600, h: 1600, price: 6981.00},
+      {w: 1700, h: 1700, price: 7547.00},
+    ]
+  }
+};
+
+// Завантаження профілів з localStorage або дефолтні
+function loadProfiles() {
+  try {
+    const saved = localStorage.getItem('winwin_profiles_v5');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_PRICE_MATRICES));
+}
+
+function saveProfiles(profiles) {
+  localStorage.setItem('winwin_profiles_v5', JSON.stringify(profiles));
+}
+
+let PRICE_MATRICES = loadProfiles();
+
+// Оновлюємо SYSTEMS на основі завантажених профілів
+function updateSystemsFromProfiles() {
+  SYSTEMS.length = 0;
+  for (const id in PRICE_MATRICES) {
+    SYSTEMS.push({id: id, name: PRICE_MATRICES[id].name || id});
+  }
+}
+updateSystemsFromProfiles();
+
+const GLASS_UNITS = [
+  {code:"21", name:"4-16-4", price:15},
+  {code:"22", name:"4-10-4-10-4", price:22},
+  {code:"23", name:"4-16-4 Low E", price:25},
+  {code:"24", name:"4-10-4-10-4 Low E", price:32},
+  {code:"27", name:"4-16-4 кризет", price:28},
+  {code:"30", name:"4-16-4 бронза", price:23},
+  {code:"43", name:"4-16термо-4 Low E", price:35},
+];
+
+// Фурнітура - залишаємо для розрахунку надбавок за додаткові стулки
+const FURNITURE = {
+  UNI: { sashSurcharge: 850 }, // грн за додаткову стулку
+  CORVUS: { sashSurcharge: 780 },
+  VORNE: { sashSurcharge: 1200 }
+};
+
+// Коефіцієнти для нестандартних форм
+const ARCH_SURCHARGE = 1.35;       // +35% на арочні
+const TRIANGLE_SURCHARGE = 1.40;   // +40% на трикутні/трапеції
+
+// ============================================
+// БІЛІНІЙНА ІНТЕРПОЛЯЦІЯ
+// ============================================
+
+function interpolatePrice(matrix, w, h) {
+  if (!matrix || matrix.length === 0) {
+    return { price: 0, method: 'немає даних' };
+  }
+  
+  // Точний збіг
+  const exact = matrix.find(p => p.w === w && p.h === h);
+  if (exact) return { price: exact.price, method: 'точний збіг' };
+  
+  // Сортуємо матрицю по площі
+  const sorted = [...matrix].sort((a, b) => (a.w * a.h) - (b.w * b.h));
+  const targetArea = w * h;
+  
+  // Знаходимо найближчі точки
+  let lower = null, upper = null;
+  
+  for (let i = 0; i < sorted.length; i++) {
+    const pointArea = sorted[i].w * sorted[i].h;
+    if (pointArea <= targetArea) {
+      lower = sorted[i];
+    }
+    if (pointArea >= targetArea && !upper) {
+      upper = sorted[i];
+    }
+  }
+  
+  // Якщо за межами матриці - екстраполяція
+  if (!lower) {
+    const smallest = sorted[0];
+    const ratio = Math.sqrt(targetArea / (smallest.w * smallest.h));
+    return { 
+      price: smallest.price * ratio, 
+      method: `екстрапол. від ${smallest.w}×${smallest.h}` 
+    };
+  }
+  if (!upper) {
+    const largest = sorted[sorted.length - 1];
+    const ratio = Math.sqrt(targetArea / (largest.w * largest.h));
+    return { 
+      price: largest.price * ratio, 
+      method: `екстрапол. від ${largest.w}×${largest.h}` 
+    };
+  }
+  
+  // Інтерполяція між двома точками
+  if (lower === upper) {
+    return { price: lower.price, method: 'точний збіг' };
+  }
+  
+  const lowerArea = lower.w * lower.h;
+  const upperArea = upper.w * upper.h;
+  const t = (targetArea - lowerArea) / (upperArea - lowerArea);
+  const price = lower.price + t * (upper.price - lower.price);
+  
+  return { 
+    price: price, 
+    method: `інтерпол. ${lower.w}×${lower.h} → ${upper.w}×${upper.h}` 
+  };
+}
+
+// ===== STATE =====
+let order = loadOrder();
+let editor = {
+  shape: 'rect',
+  dims: {
+    w: 1400,      // ширина (основа)
+    h: 1500,      // висота
+    w2: 1000,     // верхня основа (трапеція)
+    r: 300,       // радіус/висота арки
+    sideL: 800,   // ліва сторона (трикутник, трапеція)
+    sideR: 800,   // права сторона
+    s1: 500, s2: 500, s3: 500, s4: 500, s5: 500, s6: 500 // сторони багатокутників
+  },
+  cols: 2, rows: 1,
+  // Розміри секцій (замість рівномірного поділу)
+  colWidths: [700, 700],   // ширини колонок в мм
+  rowHeights: [1500],      // висоти рядків в мм
+  sections: [{type:'fix', glass:'21'}, {type:'left', glass:'21'}],
+  qty: 1,
+  params: {profile:'STEKO4S', hardware:'UNI', note:''}
+};
+let activeSashType = 'fix';
+
+// ===== UTILS =====
+function loadOrder(){
+  try {
+    const raw = localStorage.getItem('winwin_order_v2');
+    if(!raw) return {orderNo:'WW-'+Math.floor(100000+Math.random()*900000), createdAt:new Date().toISOString(), customer:{}, items:[]};
+    return JSON.parse(raw);
+  } catch(e) { return {orderNo:'WW-'+Math.floor(100000+Math.random()*900000), createdAt:new Date().toISOString(), customer:{}, items:[]}; }
+}
+function saveOrder(){ localStorage.setItem('winwin_order_v2', JSON.stringify(order)); }
+function dateUA(d){ return d.toISOString().slice(0,10); }
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v||min)); }
+function round2(x){ return Math.round(x*100)/100; }
+
+// ===== SHAPE ICONS =====
+function shapeIcon(id){
+  const s = {
+    rect: `<rect x="10" y="15" width="44" height="34" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    arch: `<path d="M10 49 L10 25 Q32 5 54 25 L54 49 Z" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    archFull: `<ellipse cx="32" cy="32" rx="22" ry="18" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    triangle: `<polygon points="32,10 54,54 10,54" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    triangleRight: `<polygon points="10,10 54,54 10,54" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    triangleLeft: `<polygon points="54,10 54,54 10,54" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    trapezoid: `<polygon points="15,10 49,10 54,54 10,54" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    trapezoidTop: `<polygon points="10,10 54,10 49,54 15,54" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    pentagon: `<polygon points="32,8 54,28 46,54 18,54 10,28" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    hexagon: `<polygon points="20,10 44,10 54,32 44,54 20,54 10,32" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    round: `<circle cx="32" cy="32" r="22" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+    halfRound: `<path d="M10 54 Q10 10 54 10 L54 54 Z" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>`,
+  };
+  return `<svg viewBox="0 0 64 64">${s[id]||s.rect}</svg>`;
+}
+
+function sashIcon(type){
+  const colors = {fix:'#e3f2fd', left:'#bbdefb', right:'#90caf9', top:'#64b5f6', bottom:'#42a5f5'};
+  const fill = colors[type] || '#e3f2fd';
+  let extra = '';
+  // Поворот + відкид
+  if(type==='left') extra = `<path d="M8 36 L36 22 L8 8" stroke="#1565c0" stroke-width="1.5" fill="none"/><path d="M8 36 L22 8 L36 36" stroke="#1565c0" stroke-width="1.5" fill="none"/><rect x="32" y="16" width="3" height="12" fill="#333"/>`;
+  if(type==='right') extra = `<path d="M36 36 L8 22 L36 8" stroke="#1565c0" stroke-width="1.5" fill="none"/><path d="M8 36 L22 8 L36 36" stroke="#1565c0" stroke-width="1.5" fill="none"/><rect x="9" y="16" width="3" height="12" fill="#333"/>`;
+  if(type==='top') extra = `<path d="M8 36 L22 8 L36 36" stroke="#1565c0" stroke-width="1.5" fill="none"/><rect x="18" y="32" width="8" height="3" fill="#333"/>`;
+  if(type==='bottom') extra = `<path d="M8 8 L22 36 L36 8" stroke="#1565c0" stroke-width="1.5" fill="none"/><rect x="18" y="9" width="8" height="3" fill="#333"/>`;
+  return `<svg viewBox="0 0 44 44"><rect x="4" y="4" width="36" height="36" fill="${fill}" stroke="#333" stroke-width="3"/>${extra}</svg>`;
+}
+
+// ===== UI INIT =====
+const $ = id => document.getElementById(id);
+
+// Shape grid
+function renderShapeGrid(){
+  const grid = $('shapeGrid');
+  grid.innerHTML = '';
+  SHAPES.forEach(sh => {
+    const div = document.createElement('div');
+    div.className = 'shapeTool' + (editor.shape===sh.id?' active':'');
+    div.innerHTML = shapeIcon(sh.id) + `<div>${sh.name}</div>`;
+    div.onclick = () => { editor.shape = sh.id; renderShapeGrid(); renderDimFields(); initSections(); };
+    grid.appendChild(div);
+  });
+}
+
+// Dimension fields based on shape
+function renderDimFields(){
+  const f = $('dimFields');
+  const sh = editor.shape;
+  const d = editor.dims;
+  let html = '';
+  
+  // Автоматичний розрахунок бокових сторін
+  function calcSide(base, top, height) {
+    const diff = (base - top) / 2;
+    return Math.round(Math.sqrt(diff*diff + height*height));
+  }
+  
+  switch(sh) {
+    case 'rect':
+      html = `
+        <div class="field"><div class="muted">Ширина</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+      `;
+      break;
+      
+    case 'arch':
+      html = `
+        <div class="field"><div class="muted">Ширина</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота прямої</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота арки</div><input type="number" id="dimR" value="${d.r}" min="50" max="2000"></div>
+      `;
+      break;
+      
+    case 'archFull':
+      html = `
+        <div class="field"><div class="muted">Ширина</div><input type="number" id="dimW" value="${d.w}" min="300" max="3000"></div>
+        <div class="field"><div class="muted">Висота</div><input type="number" id="dimH" value="${d.h}" min="300" max="3000"></div>
+      `;
+      break;
+      
+    case 'triangle':
+      html = `
+        <div class="hint" style="margin-bottom:10px;background:#e3f2fd;padding:8px;border-radius:8px">🔺 Рівнобедрений трикутник</div>
+        <div class="field"><div class="muted">Основа (низ)</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Ліва сторона</div><input type="number" id="dimSideL" value="${d.sideL || calcSide(d.w, 0, d.h)}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Права сторона</div><input type="number" id="dimSideR" value="${d.sideR || calcSide(d.w, 0, d.h)}" min="300" max="4000"></div>
+      `;
+      break;
+      
+    case 'triangleRight':
+      html = `
+        <div class="hint" style="margin-bottom:10px;background:#e3f2fd;padding:8px;border-radius:8px">◢ Прямокутний трикутник (правий)</div>
+        <div class="field"><div class="muted">Основа (низ)</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота (ліва)</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Гіпотенуза</div><input type="number" id="dimSideR" value="${d.sideR || Math.round(Math.sqrt(d.w*d.w + d.h*d.h))}" min="300" max="5000"></div>
+      `;
+      break;
+      
+    case 'triangleLeft':
+      html = `
+        <div class="hint" style="margin-bottom:10px;background:#e3f2fd;padding:8px;border-radius:8px">◣ Прямокутний трикутник (лівий)</div>
+        <div class="field"><div class="muted">Основа (низ)</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота (права)</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Гіпотенуза</div><input type="number" id="dimSideL" value="${d.sideL || Math.round(Math.sqrt(d.w*d.w + d.h*d.h))}" min="300" max="5000"></div>
+      `;
+      break;
+      
+    case 'trapezoid':
+      html = `
+        <div class="hint" style="margin-bottom:10px;background:#e3f2fd;padding:8px;border-radius:8px">⬡ Трапеція (звужена догори)</div>
+        <div class="field"><div class="muted">Нижня основа</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Верхня основа</div><input type="number" id="dimW2" value="${d.w2}" min="100" max="3500"></div>
+        <div class="field"><div class="muted">Висота</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Ліва сторона</div><input type="number" id="dimSideL" value="${d.sideL || calcSide(d.w, d.w2, d.h)}" min="100" max="4000"></div>
+        <div class="field"><div class="muted">Права сторона</div><input type="number" id="dimSideR" value="${d.sideR || calcSide(d.w, d.w2, d.h)}" min="100" max="4000"></div>
+      `;
+      break;
+      
+    case 'trapezoidTop':
+      html = `
+        <div class="hint" style="margin-bottom:10px;background:#e3f2fd;padding:8px;border-radius:8px">⬢ Трапеція (звужена донизу)</div>
+        <div class="field"><div class="muted">Верхня основа</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Нижня основа</div><input type="number" id="dimW2" value="${d.w2}" min="100" max="3500"></div>
+        <div class="field"><div class="muted">Висота</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Ліва сторона</div><input type="number" id="dimSideL" value="${d.sideL || calcSide(d.w, d.w2, d.h)}" min="100" max="4000"></div>
+        <div class="field"><div class="muted">Права сторона</div><input type="number" id="dimSideR" value="${d.sideR || calcSide(d.w, d.w2, d.h)}" min="100" max="4000"></div>
+      `;
+      break;
+      
+    case 'pentagon':
+      html = `
+        <div class="hint" style="margin-bottom:10px;background:#e3f2fd;padding:8px;border-radius:8px">⬠ П'ятикутник (будинок)</div>
+        <div class="field"><div class="muted">Ширина</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота прямої</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота "даху"</div><input type="number" id="dimR" value="${d.r}" min="100" max="2000"></div>
+        <div class="field"><div class="muted">Ліва сторона даху</div><input type="number" id="dimSideL" value="${d.sideL || calcSide(d.w, 0, d.r)}" min="100" max="3000"></div>
+        <div class="field"><div class="muted">Права сторона даху</div><input type="number" id="dimSideR" value="${d.sideR || calcSide(d.w, 0, d.r)}" min="100" max="3000"></div>
+      `;
+      break;
+      
+    case 'hexagon':
+      html = `
+        <div class="hint" style="margin-bottom:10px;background:#e3f2fd;padding:8px;border-radius:8px">⎔ Шестикутник</div>
+        <div class="field"><div class="muted">Ширина</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Верх. сторона</div><input type="number" id="dimS1" value="${d.s1 || Math.round(d.w*0.5)}" min="100" max="3000"></div>
+        <div class="field"><div class="muted">Верх. права</div><input type="number" id="dimS2" value="${d.s2 || Math.round(d.h*0.35)}" min="100" max="3000"></div>
+        <div class="field"><div class="muted">Низ. права</div><input type="number" id="dimS3" value="${d.s3 || Math.round(d.h*0.35)}" min="100" max="3000"></div>
+        <div class="field"><div class="muted">Нижня сторона</div><input type="number" id="dimS4" value="${d.s4 || Math.round(d.w*0.5)}" min="100" max="3000"></div>
+        <div class="field"><div class="muted">Низ. ліва</div><input type="number" id="dimS5" value="${d.s5 || Math.round(d.h*0.35)}" min="100" max="3000"></div>
+        <div class="field"><div class="muted">Верх. ліва</div><input type="number" id="dimS6" value="${d.s6 || Math.round(d.h*0.35)}" min="100" max="3000"></div>
+      `;
+      break;
+      
+    case 'round':
+      html = `
+        <div class="field"><div class="muted">Діаметр</div><input type="number" id="dimW" value="${d.w}" min="300" max="3000"></div>
+      `;
+      break;
+      
+    case 'halfRound':
+      html = `
+        <div class="field"><div class="muted">Ширина</div><input type="number" id="dimW" value="${d.w}" min="300" max="3000"></div>
+        <div class="field"><div class="muted">Висота</div><input type="number" id="dimH" value="${d.h || Math.round(d.w/2)}" min="150" max="2000"></div>
+      `;
+      break;
+      
+    default:
+      html = `
+        <div class="field"><div class="muted">Ширина</div><input type="number" id="dimW" value="${d.w}" min="300" max="4000"></div>
+        <div class="field"><div class="muted">Висота</div><input type="number" id="dimH" value="${d.h}" min="300" max="4000"></div>
+      `;
+  }
+  
+  // Секції для всіх форм крім круглих
+  if(!['round'].includes(sh)) {
+    html += `<div class="field"><div class="muted">Секцій (гор.)</div><input type="number" id="dimCols" value="${editor.cols}" min="1" max="5"></div>`;
+    if(!['triangle','triangleLeft','triangleRight','halfRound'].includes(sh)){
+      html += `<div class="field"><div class="muted">Секцій (верт.)</div><input type="number" id="dimRows" value="${editor.rows}" min="1" max="4"></div>`;
+    }
+    
+    // Розміри колонок (імпости вертикальні)
+    if(editor.cols > 1) {
+      html += `<div class="hint" style="margin-top:12px;background:#fff3e0;padding:8px;border-radius:8px">📐 <b>Ширина секцій</b> (сума = ${d.w} мм)</div>`;
+      for(let i = 0; i < editor.cols; i++) {
+        const val = editor.colWidths[i] || Math.round(d.w / editor.cols);
+        html += `<div class="field"><div class="muted">Секція ${i+1}</div><input type="number" id="colW_${i}" value="${val}" min="100" max="3000" class="colWidthInput"></div>`;
+      }
+    }
+    
+    // Розміри рядків (імпости горизонтальні)
+    if(editor.rows > 1 && !['triangle','triangleLeft','triangleRight','halfRound'].includes(sh)) {
+      const totalH = d.h || d.w;
+      html += `<div class="hint" style="margin-top:12px;background:#e8f5e9;padding:8px;border-radius:8px">📐 <b>Висота секцій</b> (сума = ${totalH} мм)</div>`;
+      for(let i = 0; i < editor.rows; i++) {
+        const val = editor.rowHeights[i] || Math.round(totalH / editor.rows);
+        html += `<div class="field"><div class="muted">Ряд ${i+1}</div><input type="number" id="rowH_${i}" value="${val}" min="100" max="3000" class="rowHeightInput"></div>`;
+      }
+    }
+  }
+  
+  f.innerHTML = html;
+  
+  // Bind events - тільки зберігаємо значення, не перемальовуємо
+  const bindDim = (id, key) => { 
+    const el = $(id); 
+    if(el) {
+      el.oninput = () => { 
+        const val = parseInt(el.value);
+        if(!isNaN(val) && val >= 50) {
+          editor.dims[key] = val;
+        }
+      };
+      // Оновлюємо секції тільки при втраті фокусу
+      el.onblur = () => {
+        const val = parseInt(el.value) || 300;
+        editor.dims[key] = Math.max(50, Math.min(5000, val));
+        el.value = editor.dims[key];
+        updateColRowDefaults();
+      };
+    }
+  };
+  
+  bindDim('dimW', 'w');
+  bindDim('dimH', 'h');
+  bindDim('dimW2', 'w2');
+  bindDim('dimR', 'r');
+  bindDim('dimSideL', 'sideL');
+  bindDim('dimSideR', 'sideR');
+  bindDim('dimS1', 's1');
+  bindDim('dimS2', 's2');
+  bindDim('dimS3', 's3');
+  bindDim('dimS4', 's4');
+  bindDim('dimS5', 's5');
+  bindDim('dimS6', 's6');
+  
+  const colsEl = $('dimCols'); 
+  if(colsEl) colsEl.onchange = () => { 
+    const val = parseInt(colsEl.value) || 1;
+    editor.cols = Math.max(1, Math.min(5, val)); 
+    colsEl.value = editor.cols;
+    updateColRowDefaults();
+    initSections(); 
+    renderDimFields();
+  };
+  const rowsEl = $('dimRows'); 
+  if(rowsEl) rowsEl.onchange = () => { 
+    const val = parseInt(rowsEl.value) || 1;
+    editor.rows = Math.max(1, Math.min(4, val)); 
+    rowsEl.value = editor.rows;
+    updateColRowDefaults();
+    initSections(); 
+    renderDimFields();
+  };
+  
+  // Bind column width inputs
+  for(let i = 0; i < editor.cols; i++) {
+    const idx = i;
+    const el = $(`colW_${idx}`);
+    if(el) {
+      el.oninput = () => {
+        const val = parseInt(el.value);
+        if(!isNaN(val) && val >= 100) {
+          editor.colWidths[idx] = val;
+        }
+      };
+    }
+  }
+  
+  // Bind row height inputs
+  for(let i = 0; i < editor.rows; i++) {
+    const idx = i;
+    const el = $(`rowH_${idx}`);
+    if(el) {
+      el.oninput = () => {
+        const val = parseInt(el.value);
+        if(!isNaN(val) && val >= 100) {
+          editor.rowHeights[idx] = val;
+        }
+      };
+    }
+  }
+}
+
+// Оновлення дефолтних значень при зміні кількості секцій
+function updateColRowDefaults() {
+  const w = editor.dims.w;
+  const h = editor.dims.h || editor.dims.w;
+  
+  // Оновити ширини колонок
+  const newColWidths = [];
+  for(let i = 0; i < editor.cols; i++) {
+    newColWidths[i] = editor.colWidths[i] || Math.round(w / editor.cols);
+  }
+  editor.colWidths = newColWidths;
+  
+  // Оновити висоти рядків
+  const newRowHeights = [];
+  for(let i = 0; i < editor.rows; i++) {
+    newRowHeights[i] = editor.rowHeights[i] || Math.round(h / editor.rows);
+  }
+  editor.rowHeights = newRowHeights;
+}
+
+// Sash palette
+function renderSashPalette(){
+  const pal = $('sashPalette');
+  pal.innerHTML = '';
+  SASH_TYPES.forEach(st => {
+    const div = document.createElement('div');
+    div.className = 'shapeTool' + (activeSashType===st.id?' active':'');
+    div.innerHTML = sashIcon(st.id) + `<div>${st.name}</div>`;
+    div.onclick = () => { activeSashType = st.id; renderSashPalette(); };
+    pal.appendChild(div);
+  });
+}
+
+// Initialize sections array
+function initSections(){
+  const n = editor.cols * editor.rows;
+  editor.sections = Array(n).fill(null).map((_,i) => {
+    const existing = editor.sections[i];
+    return {
+      type: existing?.type || 'fix',
+      glass: existing?.glass || '21' // default glass
+    };
+  });
+  updateColRowDefaults();
+  renderSectionPreview();
+}
+
+// Render glass selection per section
+function renderGlassPerSection(){
+  const container = $('glassPerSection');
+  if(!container) return;
+  
+  const cols = editor.cols;
+  const rows = editor.rows;
+  
+  let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">';
+  
+  for(let row=0; row<rows; row++){
+    for(let col=0; col<cols; col++){
+      const idx = row*cols + col;
+      const sec = editor.sections[idx] || {type:'fix', glass:'21'};
+      const typeName = SASH_TYPES.find(s=>s.id===sec.type)?.name || 'Глухе';
+      
+      html += `<div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;background:#fafafa">
+        <div style="font-weight:600;margin-bottom:6px;color:#1565c0">Секція ${idx+1} <span style="font-weight:400;color:#666">(${typeName})</span></div>
+        <select id="secGlass_${idx}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd">
+          ${GLASS_UNITS.map(g => `<option value="${g.code}" ${sec.glass===g.code?'selected':''}>${g.name} (${g.price}€/м²)</option>`).join('')}
+        </select>
+      </div>`;
+    }
+  }
+  
+  html += '</div>';
+  html += '<div class="hint" style="margin-top:10px">Оберіть склопакет для кожної секції окремо</div>';
+  
+  container.innerHTML = html;
+  
+  // Bind events
+  for(let i = 0; i < editor.sections.length; i++){
+    const sel = $(`secGlass_${i}`);
+    if(sel){
+      sel.onchange = () => {
+        editor.sections[i].glass = sel.value;
+      };
+    }
+  }
+}
+
+// Section preview (clickable)
+function renderSectionPreview(){
+  const host = $('sectionPreview');
+  const {w, h, r, w2} = editor.dims;
+  const cols = editor.cols, rows = editor.rows;
+  const shape = editor.shape;
+  const totalH = h || w;
+  
+  // Calculate SVG size
+  const maxW = 320, maxH = 280;
+  const scale = Math.min(maxW/w, maxH/totalH);
+  const W = w * scale, H = totalH * scale;
+  const pad = 10;
+  
+  // Get actual column positions based on colWidths
+  const colPositions = [0];
+  let cumX = 0;
+  for(let i = 0; i < cols; i++) {
+    cumX += (editor.colWidths[i] || w/cols);
+    colPositions.push(cumX);
+  }
+  // Normalize to actual width
+  const colScale = w / cumX;
+  for(let i = 0; i <= cols; i++) colPositions[i] *= colScale * scale;
+  
+  // Get actual row positions based on rowHeights
+  const rowPositions = [0];
+  let cumY = 0;
+  for(let i = 0; i < rows; i++) {
+    cumY += (editor.rowHeights[i] || totalH/rows);
+    rowPositions.push(cumY);
+  }
+  // Normalize to actual height
+  const rowScale = totalH / cumY;
+  for(let i = 0; i <= rows; i++) rowPositions[i] *= rowScale * scale;
+  
+  let parts = [];
+  parts.push(`<defs><clipPath id="shapeClip">${getShapePath(W,H,shape,(r||0)*scale,(w2||w)*scale)}</clipPath></defs>`);
+  
+  // Background shape
+  parts.push(`<g clip-path="url(#shapeClip)">`);
+  parts.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#fff" stroke="none"/>`);
+  
+  // Grid cells with actual sizes
+  for(let row=0; row<rows; row++){
+    for(let col=0; col<cols; col++){
+      const idx = row*cols + col;
+      const sec = editor.sections[idx] || {type:'fix'};
+      const x = colPositions[col];
+      const y = rowPositions[row];
+      const cellW = colPositions[col+1] - colPositions[col];
+      const cellH = rowPositions[row+1] - rowPositions[row];
+      const color = SASH_TYPES.find(s=>s.id===sec.type)?.color || '#e3f2fd';
+      
+      parts.push(`<rect x="${x+2}" y="${y+2}" width="${cellW-4}" height="${cellH-4}" fill="${color}" stroke="#666" stroke-width="1" 
+        style="cursor:pointer" data-idx="${idx}"/>`);
+      
+      // Координати для креслення
+      const midLeft = {x: x+6, y: y+cellH/2};
+      const midRight = {x: x+cellW-6, y: y+cellH/2};
+      const midTop = {x: x+cellW/2, y: y+6};
+      const midBottom = {x: x+cellW/2, y: y+cellH-6};
+      const topLeft = {x: x+6, y: y+6};
+      const topRight = {x: x+cellW-6, y: y+6};
+      const bottomLeft = {x: x+6, y: y+cellH-6};
+      const bottomRight = {x: x+cellW-6, y: y+cellH-6};
+      
+      if(sec.type==='left'){
+        // Ліва ПВ: поворот вліво + відкид
+        // Поворот: нижній лівий → центр правого, центр правого → верхній лівий
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midRight.x} ${midRight.y} L${topLeft.x} ${topLeft.y}" stroke="#1565c0" stroke-width="1.5" fill="none"/>`);
+        // Відкид: лівий нижній → центр верху, правий нижній → центр верху
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midTop.x} ${midTop.y} L${bottomRight.x} ${bottomRight.y}" stroke="#1565c0" stroke-width="1.5" fill="none"/>`);
+        // Ручка справа
+        parts.push(`<rect x="${x+cellW-10}" y="${y+cellH/2-8}" width="4" height="16" rx="2" fill="#333"/>`);
+      }
+      if(sec.type==='right'){
+        // Права ПВ: поворот вправо + відкид
+        // Поворот: нижній правий → центр лівого, центр лівого → верхній правий
+        parts.push(`<path d="M${bottomRight.x} ${bottomRight.y} L${midLeft.x} ${midLeft.y} L${topRight.x} ${topRight.y}" stroke="#1565c0" stroke-width="1.5" fill="none"/>`);
+        // Відкид: лівий нижній → центр верху, правий нижній → центр верху
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midTop.x} ${midTop.y} L${bottomRight.x} ${bottomRight.y}" stroke="#1565c0" stroke-width="1.5" fill="none"/>`);
+        // Ручка зліва
+        parts.push(`<rect x="${x+6}" y="${y+cellH/2-8}" width="4" height="16" rx="2" fill="#333"/>`);
+      }
+      if(sec.type==='top'){
+        // Тільки відкид вгору
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midTop.x} ${midTop.y} L${bottomRight.x} ${bottomRight.y}" stroke="#1565c0" stroke-width="1.5" fill="none"/>`);
+        // Ручка знизу
+        parts.push(`<rect x="${x+cellW/2-8}" y="${y+cellH-10}" width="16" height="4" rx="2" fill="#333"/>`);
+      }
+      if(sec.type==='bottom'){
+        // Тільки відкид вниз
+        parts.push(`<path d="M${topLeft.x} ${topLeft.y} L${midBottom.x} ${midBottom.y} L${topRight.x} ${topRight.y}" stroke="#1565c0" stroke-width="1.5" fill="none"/>`);
+        // Ручка зверху
+        parts.push(`<rect x="${x+cellW/2-8}" y="${y+6}" width="16" height="4" rx="2" fill="#333"/>`);
+      }
+      
+      // Number
+      parts.push(`<text x="${x+cellW/2}" y="${y+cellH/2+4}" text-anchor="middle" font-size="14" font-weight="700">${idx+1}</text>`);
+      
+      // Cell size label
+      const cellWmm = Math.round((editor.colWidths[col] || w/cols) * colScale);
+      const cellHmm = Math.round((editor.rowHeights[row] || totalH/rows) * rowScale);
+      parts.push(`<text x="${x+cellW/2}" y="${y+cellH-6}" text-anchor="middle" font-size="9" fill="#666">${cellWmm}×${cellHmm}</text>`);
+    }
+  }
+  parts.push(`</g>`);
+  
+  // Impost lines (thicker, to show them clearly)
+  for(let c=1; c<cols; c++){
+    const x = colPositions[c];
+    parts.push(`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#333" stroke-width="4"/>`);
+  }
+  for(let r=1; r<rows; r++){
+    const y = rowPositions[r];
+    parts.push(`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#333" stroke-width="4"/>`);
+  }
+  
+  // Shape outline
+  parts.push(getShapePath(W,H,shape,(r||0)*scale,(w2||w)*scale).replace('<path','<path fill="none" stroke="#333" stroke-width="4"').replace('<rect','<rect fill="none" stroke="#333" stroke-width="4"').replace('<ellipse','<ellipse fill="none" stroke="#333" stroke-width="4"').replace('<circle','<circle fill="none" stroke="#333" stroke-width="4"'));
+  
+  host.innerHTML = `<svg width="${W+pad*2}" height="${H+pad*2}" viewBox="${-pad} ${-pad} ${W+pad*2} ${H+pad*2}">${parts.join('')}</svg>`;
+  
+  // Click handlers
+  host.querySelectorAll('[data-idx]').forEach(el => {
+    el.onclick = () => {
+      const idx = parseInt(el.dataset.idx);
+      const existingGlass = editor.sections[idx]?.glass || '21';
+      editor.sections[idx] = {type: activeSashType, glass: existingGlass};
+      renderSectionPreview();
+    };
+  });
+}
+
+function getShapePath(W,H,shape,R,W2){
+  switch(shape){
+    case 'arch': return `<path d="M0 ${H} L0 ${R} Q${W/2} ${-R*0.3} ${W} ${R} L${W} ${H} Z"/>`;
+    case 'archFull': return `<ellipse cx="${W/2}" cy="${H/2}" rx="${W/2}" ry="${H/2}"/>`;
+    case 'triangle': return `<path d="M${W/2} 0 L${W} ${H} L0 ${H} Z"/>`;
+    case 'triangleRight': return `<path d="M0 0 L${W} ${H} L0 ${H} Z"/>`;
+    case 'triangleLeft': return `<path d="M${W} 0 L${W} ${H} L0 ${H} Z"/>`;
+    case 'trapezoid': return `<path d="M${(W-W2)/2} 0 L${W-(W-W2)/2} 0 L${W} ${H} L0 ${H} Z"/>`;
+    case 'trapezoidTop': return `<path d="M0 0 L${W} 0 L${W-(W-W2)/2} ${H} L${(W-W2)/2} ${H} Z"/>`;
+    case 'pentagon': return `<path d="M${W/2} 0 L${W} ${R} L${W} ${H} L0 ${H} L0 ${R} Z"/>`;
+    case 'hexagon': return `<path d="M${W*0.25} 0 L${W*0.75} 0 L${W} ${H/2} L${W*0.75} ${H} L${W*0.25} ${H} L0 ${H/2} Z"/>`;
+    case 'round': return `<circle cx="${W/2}" cy="${W/2}" r="${W/2}"/>`;
+    case 'halfRound': return `<path d="M0 ${W/2} Q0 0 ${W/2} 0 Q${W} 0 ${W} ${W/2} L${W} ${W/2} L0 ${W/2} Z"/>`;
+    default: return `<rect x="0" y="0" width="${W}" height="${H}"/>`;
+  }
+}
+
+// Full drawing preview
+function renderFullPreview(){
+  const host = $('svgHost');
+  const d = editor.dims;
+  const {w, h, r, w2, sideL, sideR} = d;
+  const cols = editor.cols, rows = editor.rows;
+  const shape = editor.shape;
+  const realH = h || w;
+  
+  const maxW = 500, maxH = 400;
+  const scale = Math.min(maxW/w, maxH/realH);
+  const W = w * scale, H = realH * scale;
+  const pad = 60;
+  
+  // Calculate column positions based on colWidths
+  const colPositions = [0];
+  let cumX = 0;
+  for(let i = 0; i < cols; i++) {
+    cumX += (editor.colWidths[i] || w/cols);
+    colPositions.push(cumX);
+  }
+  const colScale = w / cumX;
+  const colWidthsMm = [];
+  for(let i = 0; i < cols; i++) {
+    colWidthsMm[i] = Math.round((editor.colWidths[i] || w/cols) * colScale);
+  }
+  for(let i = 0; i <= cols; i++) colPositions[i] = colPositions[i] * colScale * scale;
+  
+  // Calculate row positions based on rowHeights
+  const rowPositions = [0];
+  let cumY = 0;
+  for(let i = 0; i < rows; i++) {
+    cumY += (editor.rowHeights[i] || realH/rows);
+    rowPositions.push(cumY);
+  }
+  const rowScale = realH / cumY;
+  const rowHeightsMm = [];
+  for(let i = 0; i < rows; i++) {
+    rowHeightsMm[i] = Math.round((editor.rowHeights[i] || realH/rows) * rowScale);
+  }
+  for(let i = 0; i <= rows; i++) rowPositions[i] = rowPositions[i] * rowScale * scale;
+  
+  let parts = [];
+  parts.push(`<defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1565c0"/>
+    </marker>
+    <clipPath id="mainClip">${getShapePath(W,H,shape,(r||0)*scale,(w2||w)*scale)}</clipPath>
+  </defs>`);
+  
+  // Frame
+  parts.push(`<g clip-path="url(#mainClip)">`);
+  parts.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>`);
+  
+  // Glass sections with actual sizes
+  for(let row=0; row<rows; row++){
+    for(let col=0; col<cols; col++){
+      const idx = row*cols + col;
+      const sec = editor.sections[idx] || {type:'fix'};
+      const x = colPositions[col];
+      const y = rowPositions[row];
+      const cellW = colPositions[col+1] - colPositions[col];
+      const cellH = rowPositions[row+1] - rowPositions[row];
+      const color = SASH_TYPES.find(s=>s.id===sec.type)?.color || '#e3f2fd';
+      
+      parts.push(`<rect x="${x+4}" y="${y+4}" width="${cellW-8}" height="${cellH-8}" fill="${color}" stroke="#555" stroke-width="1"/>`);
+      
+      // Координати для креслення
+      const p = 10;
+      const midLeft = {x: x+p, y: y+cellH/2};
+      const midRight = {x: x+cellW-p, y: y+cellH/2};
+      const midTop = {x: x+cellW/2, y: y+p};
+      const midBottom = {x: x+cellW/2, y: y+cellH-p};
+      const topLeft = {x: x+p, y: y+p};
+      const topRight = {x: x+cellW-p, y: y+p};
+      const bottomLeft = {x: x+p, y: y+cellH-p};
+      const bottomRight = {x: x+cellW-p, y: y+cellH-p};
+      
+      if(sec.type==='left'){
+        // Ліва ПВ: поворот вліво + відкид
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midRight.x} ${midRight.y} L${topLeft.x} ${topLeft.y}" stroke="#1565c0" stroke-width="2" fill="none"/>`);
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midTop.x} ${midTop.y} L${bottomRight.x} ${bottomRight.y}" stroke="#1565c0" stroke-width="2" fill="none"/>`);
+        parts.push(`<rect x="${x+cellW-14}" y="${y+cellH/2-12}" width="4" height="24" rx="2" fill="#333"/>`);
+      }
+      if(sec.type==='right'){
+        // Права ПВ: поворот вправо + відкид
+        parts.push(`<path d="M${bottomRight.x} ${bottomRight.y} L${midLeft.x} ${midLeft.y} L${topRight.x} ${topRight.y}" stroke="#1565c0" stroke-width="2" fill="none"/>`);
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midTop.x} ${midTop.y} L${bottomRight.x} ${bottomRight.y}" stroke="#1565c0" stroke-width="2" fill="none"/>`);
+        parts.push(`<rect x="${x+10}" y="${y+cellH/2-12}" width="4" height="24" rx="2" fill="#333"/>`);
+      }
+      if(sec.type==='top'){
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midTop.x} ${midTop.y} L${bottomRight.x} ${bottomRight.y}" stroke="#1565c0" stroke-width="2" fill="none"/>`);
+        parts.push(`<rect x="${x+cellW/2-12}" y="${y+cellH-14}" width="24" height="4" rx="2" fill="#333"/>`);
+      }
+      if(sec.type==='bottom'){
+        parts.push(`<path d="M${topLeft.x} ${topLeft.y} L${midBottom.x} ${midBottom.y} L${topRight.x} ${topRight.y}" stroke="#1565c0" stroke-width="2" fill="none"/>`);
+        parts.push(`<rect x="${x+cellW/2-12}" y="${y+10}" width="24" height="4" rx="2" fill="#333"/>`);
+      }
+      
+      parts.push(`<text x="${x+cellW/2}" y="${y+cellH/2+5}" text-anchor="middle" font-size="16" font-weight="700" fill="#333">${idx+1}</text>`);
+    }
+  }
+  
+  // Impost lines
+  for(let c=1; c<cols; c++){
+    const x = colPositions[c];
+    parts.push(`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#333" stroke-width="4"/>`);
+  }
+  for(let rr=1; rr<rows; rr++){
+    const y = rowPositions[rr];
+    parts.push(`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#333" stroke-width="4"/>`);
+  }
+  parts.push(`</g>`);
+  
+  // Shape outline
+  const outlinePath = getShapePath(W,H,shape,(r||0)*scale,(w2||w)*scale)
+    .replace(/<(path|rect|ellipse|circle)/g, '<$1 fill="none" stroke="#333" stroke-width="6"');
+  parts.push(outlinePath);
+  
+  // === DIMENSIONS ===
+  const dimOffset = 25;
+  const fontSize = 14;
+  const dimColor = '#1565c0';
+  
+  // Width on top (загальна)
+  parts.push(`<line x1="0" y1="${-dimOffset}" x2="${W}" y2="${-dimOffset}" stroke="${dimColor}" stroke-width="1.5" marker-start="url(#arr)" marker-end="url(#arr)"/>`);
+  parts.push(`<text x="${W/2}" y="${-dimOffset-8}" text-anchor="middle" font-size="${fontSize}" font-weight="700" fill="${dimColor}">${w}</text>`);
+  
+  // Height on left (загальна)
+  if(!['round'].includes(shape)){
+    parts.push(`<line x1="${-dimOffset}" y1="0" x2="${-dimOffset}" y2="${H}" stroke="${dimColor}" stroke-width="1.5" marker-start="url(#arr)" marker-end="url(#arr)"/>`);
+    parts.push(`<text x="${-dimOffset-8}" y="${H/2}" text-anchor="middle" font-size="${fontSize}" font-weight="700" fill="${dimColor}" transform="rotate(-90 ${-dimOffset-8} ${H/2})">${realH}</text>`);
+  }
+  
+  // Column widths at bottom (розміри секцій)
+  for(let c=0; c<cols; c++){
+    const x1 = colPositions[c];
+    const x2 = colPositions[c+1];
+    const midX = (x1 + x2) / 2;
+    parts.push(`<line x1="${x1}" y1="${H+15}" x2="${x2}" y2="${H+15}" stroke="${dimColor}" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>`);
+    parts.push(`<text x="${midX}" y="${H+30}" text-anchor="middle" font-size="12" font-weight="600" fill="${dimColor}">${colWidthsMm[c]}</text>`);
+  }
+  
+  // Row heights at right (розміри рядків)
+  if(rows > 1) {
+    for(let rr=0; rr<rows; rr++){
+      const y1 = rowPositions[rr];
+      const y2 = rowPositions[rr+1];
+      const midY = (y1 + y2) / 2;
+      parts.push(`<line x1="${W+15}" y1="${y1}" x2="${W+15}" y2="${y2}" stroke="${dimColor}" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>`);
+      parts.push(`<text x="${W+22}" y="${midY+4}" text-anchor="start" font-size="11" font-weight="600" fill="${dimColor}">${rowHeightsMm[rr]}</text>`);
+    }
+  }
+  
+  // Triangle sides
+  if(shape === 'triangle' && sideL && sideR){
+    parts.push(`<text x="${W/4-15}" y="${H/2}" text-anchor="end" font-size="12" font-weight="600" fill="${dimColor}">${sideL}</text>`);
+    parts.push(`<text x="${W*3/4+15}" y="${H/2}" text-anchor="start" font-size="12" font-weight="600" fill="${dimColor}">${sideR}</text>`);
+  }
+  if(shape === 'triangleRight' && sideR){
+    parts.push(`<text x="${W+15}" y="${H/2}" text-anchor="start" font-size="12" font-weight="600" fill="${dimColor}">${sideR}</text>`);
+  }
+  if(shape === 'triangleLeft' && sideL){
+    parts.push(`<text x="${-15}" y="${H/2}" text-anchor="end" font-size="12" font-weight="600" fill="${dimColor}">${sideL}</text>`);
+  }
+  
+  // Trapezoid dimensions
+  if(['trapezoid','trapezoidTop'].includes(shape)){
+    if(w2) parts.push(`<text x="${W/2}" y="${shape==='trapezoid' ? 18 : H-8}" text-anchor="middle" font-size="12" font-weight="600" fill="${dimColor}">${w2}</text>`);
+    if(sideL) parts.push(`<text x="${-8}" y="${H/2}" text-anchor="end" font-size="12" font-weight="600" fill="${dimColor}">${sideL}</text>`);
+    if(sideR) parts.push(`<text x="${W+8}" y="${H/2}" text-anchor="start" font-size="12" font-weight="600" fill="${dimColor}">${sideR}</text>`);
+  }
+  
+  // Pentagon roof
+  if(shape === 'pentagon'){
+    if(r) parts.push(`<text x="${W+10}" y="${(r||0)*scale/2+10}" text-anchor="start" font-size="11" font-weight="600" fill="${dimColor}">↕${r}</text>`);
+    if(sideL) parts.push(`<text x="${W/4-8}" y="${(r||0)*scale/2}" text-anchor="end" font-size="11" font-weight="600" fill="${dimColor}">${sideL}</text>`);
+    if(sideR) parts.push(`<text x="${W*3/4+8}" y="${(r||0)*scale/2}" text-anchor="start" font-size="11" font-weight="600" fill="${dimColor}">${sideR}</text>`);
+  }
+  
+  // Arch radius
+  if(shape === 'arch' && r){
+    parts.push(`<text x="${W+10}" y="${(r||0)*scale/2}" text-anchor="start" font-size="11" font-weight="600" fill="${dimColor}">R${r}</text>`);
+  }
+  
+  host.innerHTML = `<svg width="100%" height="100%" viewBox="${-pad} ${-pad} ${W+pad*2} ${H+pad*2}">${parts.join('')}</svg>`;
+  
+  updatePrice();
+}
+
+// ===== PRICE CALCULATION (Matrix Interpolation) =====
+function calcPrice(){
+  const d = editor.dims;
+  const {w, h, r, w2, sideL, sideR, s1, s2, s3, s4, s5, s6} = d;
+  const cols = editor.cols, rows = editor.rows;
+  const shape = editor.shape;
+  const profileId = editor.params.profile;
+  const profileMatrix = PRICE_MATRICES[profileId];
+  
+  let breakdown = [];
+  let totalUah = 0;
+  let interpMethod = '';
+  
+  // Calculate area and perimeter based on shape
+  const wM = w/1000, hM = (h||w)/1000, rM = (r||0)/1000, w2M = (w2||w)/1000;
+  const sideLM = (sideL||0)/1000, sideRM = (sideR||0)/1000;
+  let area, perimeter;
+  
+  switch(shape){
+    case 'rect':
+      area = wM * hM;
+      perimeter = 2*(wM + hM);
+      break;
+    case 'arch':
+      area = wM * hM + Math.PI * (wM/2) * rM / 2;
+      perimeter = 2*hM + wM + Math.PI * wM / 2;
+      break;
+    case 'archFull':
+      area = Math.PI * wM/2 * hM/2;
+      perimeter = Math.PI * (3*(wM/2 + hM/2) - Math.sqrt((3*wM/2 + hM/2)*(wM/2 + 3*hM/2)));
+      break;
+    case 'triangle':
+      area = wM * hM / 2;
+      perimeter = wM + sideLM + sideRM;
+      break;
+    case 'triangleRight':
+      area = wM * hM / 2;
+      perimeter = wM + hM + sideRM;
+      break;
+    case 'triangleLeft':
+      area = wM * hM / 2;
+      perimeter = wM + hM + sideLM;
+      break;
+    case 'trapezoid':
+    case 'trapezoidTop':
+      area = (wM + w2M) * hM / 2;
+      perimeter = wM + w2M + sideLM + sideRM;
+      break;
+    case 'pentagon':
+      area = wM * hM + wM * rM / 2;
+      perimeter = wM + 2*hM + sideLM + sideRM;
+      break;
+    case 'hexagon':
+      area = wM * hM * 0.866;
+      perimeter = (s1 + s2 + s3 + s4 + s5 + s6) / 1000;
+      break;
+    case 'round':
+      area = Math.PI * Math.pow(wM/2, 2);
+      perimeter = Math.PI * wM;
+      break;
+    case 'halfRound':
+      area = Math.PI * Math.pow(wM/2, 2) / 4 + wM * (hM - wM/2);
+      perimeter = Math.PI * wM / 2 + 2*hM;
+      break;
+    default:
+      area = wM * hM;
+      perimeter = 2*(wM + hM);
+  }
+  
+  // Shape surcharge
+  let shapeSurcharge = 1;
+  if(['arch','archFull','halfRound','round'].includes(shape)) shapeSurcharge = ARCH_SURCHARGE;
+  if(['triangle','triangleLeft','triangleRight','trapezoid','trapezoidTop','pentagon','hexagon'].includes(shape)) shapeSurcharge = TRIANGLE_SURCHARGE;
+  
+  // Count sashes and imposts
+  const sashCount = editor.sections.filter(s => s.type !== 'fix').length;
+  const hasImpost = cols > 1 || rows > 1;
+  const realH = h || w;
+  
+  // Determine window type for matrix lookup
+  let matrixType = 'fix';
+  if (sashCount > 0) {
+    matrixType = 'sash';
+  } else if (hasImpost) {
+    matrixType = 'fixImpost';
+  }
+  
+  // Get base price from matrix
+  if (profileMatrix && profileMatrix[matrixType]) {
+    const result = interpolatePrice(profileMatrix[matrixType], w, realH);
+    totalUah = result.price;
+    interpMethod = result.method;
+    breakdown.push({name: `Базова ціна (${matrixType})`, price: result.price});
+  } else {
+    // Fallback - якщо немає матриці для типу, використовуємо fix
+    if (profileMatrix && profileMatrix.fix) {
+      const result = interpolatePrice(profileMatrix.fix, w, realH);
+      totalUah = result.price;
+      interpMethod = result.method + ' (fallback)';
+      breakdown.push({name: `Базова ціна (fix)`, price: result.price});
+    } else {
+      totalUah = area * 3000; // грубий fallback
+      interpMethod = 'немає даних';
+      breakdown.push({name: `Орієнтовна ціна`, price: totalUah});
+    }
+  }
+  
+  // Надбавка за додаткові стулки (якщо більше 1)
+  if (sashCount > 1) {
+    const furn = FURNITURE[editor.params.hardware] || FURNITURE.UNI;
+    const extraSashes = sashCount - 1;
+    const extraCost = extraSashes * furn.sashSurcharge;
+    totalUah += extraCost;
+    breakdown.push({name: `Додаткові стулки ×${extraSashes}`, price: extraCost});
+  }
+  
+  // Надбавка за додаткові імпости (якщо більше 1)
+  const impostCount = (cols - 1) + (rows - 1);
+  if (impostCount > 1) {
+    const extraImposts = impostCount - 1;
+    const impostCost = extraImposts * 350; // ~350 грн за додатковий імпост
+    totalUah += impostCost;
+    breakdown.push({name: `Додаткові імпости ×${extraImposts}`, price: impostCost});
+  }
+  
+  // Надбавка за нестандартну форму
+  if (shapeSurcharge > 1) {
+    const surchargeAmount = totalUah * (shapeSurcharge - 1);
+    totalUah += surchargeAmount;
+    breakdown.push({name: `Надбавка за форму (+${Math.round((shapeSurcharge-1)*100)}%)`, price: surchargeAmount});
+  }
+  
+  // Надбавка за інший склопакет (відносно базового 4-16-4)
+  const baseGlassCode = '21'; // 4-16-4
+  const sectionGlasses = editor.sections.map(s => s.glass || '21');
+  const uniqueGlasses = [...new Set(sectionGlasses)];
+  
+  for (const glassCode of uniqueGlasses) {
+    if (glassCode !== baseGlassCode) {
+      const glass = GLASS_UNITS.find(g => g.code === glassCode);
+      const baseGlass = GLASS_UNITS.find(g => g.code === baseGlassCode);
+      if (glass && baseGlass) {
+        const priceDiff = glass.price - baseGlass.price; // EUR/m²
+        const eurRate = 44.5;
+        const glassSurcharge = area * priceDiff * eurRate;
+        if (glassSurcharge > 0) {
+          totalUah += glassSurcharge;
+          breakdown.push({name: `Склопакет ${glass.name}`, price: glassSurcharge});
+        }
+      }
+    }
+  }
+  
+  totalUah = round2(totalUah);
+  const qty = editor.qty;
+  
+  // Convert to EUR for display (approximate)
+  const eurRate = 44.5;
+  const oneEur = round2(totalUah / eurRate);
+  
+  return {
+    oneEur,
+    oneUah: totalUah,
+    totalEur: round2(oneEur * qty),
+    totalUah: round2(totalUah * qty),
+    breakdown,
+    area,
+    perimeter,
+    sashCount,
+    interpMethod
+  };
+}
+
+function updatePrice(){
+  const p = calcPrice();
+  $('kArea').textContent = p.area.toFixed(2);
+  $('kPriceEur').textContent = p.oneEur.toFixed(2);
+  $('kPrice').textContent = p.oneUah.toFixed(2);
+  $('kTotal').textContent = p.totalUah.toFixed(2);
+  
+  let detailsHtml = p.breakdown.map(b => 
+    `<div><span>${b.name}</span><b>${b.price.toFixed(2)} грн</b></div>`
+  ).join('');
+  detailsHtml += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #ddd;font-size:10px;color:#666"><span>Метод:</span><b>${p.interpMethod}</b></div>`;
+  $('priceDetails').innerHTML = detailsHtml;
+}
+
+// ===== NAVIGATION =====
+function setTab(name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('.tabPanel').forEach(p => p.style.display = 'none');
+  $('tab_'+name).style.display = 'block';
+  
+  if(name==='sections'){ renderSashPalette(); initSections(); }
+  if(name==='preview') renderFullPreview();
+  if(name==='params'){ 
+    $('pProfile').value = editor.params.profile; 
+    $('pHardware').value = editor.params.hardware; 
+    renderGlassPerSection();
+  }
+}
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setTab(t.dataset.tab));
+$('toSections').onclick = () => setTab('sections');
+$('backToShape').onclick = () => setTab('shape');
+$('toPreview').onclick = () => setTab('preview');
+$('backToSections').onclick = () => setTab('sections');
+$('toParams').onclick = () => setTab('params');
+$('backToPreview').onclick = () => setTab('preview');
+
+$('qtyMinus').onclick = () => { editor.qty = Math.max(1, editor.qty-1); $('qtyVal').textContent = editor.qty; updatePrice(); };
+$('qtyPlus').onclick = () => { editor.qty = Math.min(99, editor.qty+1); $('qtyVal').textContent = editor.qty; updatePrice(); };
+$('eurRate').oninput = updatePrice;
+$('pProfile').onchange = () => { editor.params.profile = $('pProfile').value; updatePrice(); };
+$('pHardware').onchange = () => { editor.params.hardware = $('pHardware').value; updatePrice(); };
+
+// ===== CART =====
+function showCart(){
+  $('screenCart').style.display = '';
+  $('screenEditor').style.display = 'none';
+  $('backBtn').style.display = 'none';
+  $('saveBtn').style.display = 'none';
+  $('topTitle').textContent = 'Win-Win Калькулятор v2';
+  renderCart();
+}
+
+function showEditor(){
+  $('screenCart').style.display = 'none';
+  $('screenEditor').style.display = '';
+  $('backBtn').style.display = '';
+  $('saveBtn').style.display = 'none';
+  $('topTitle').textContent = 'Нова конструкція';
+  
+  // Reset editor
+  editor = {
+    shape: 'rect',
+    dims: {w:1400, h:1500, w2:1000, h2:500, r:300, sideL:800, sideR:800},
+    cols: 2, rows: 1,
+    colWidths: [700, 700],
+    rowHeights: [1500],
+    sections: [{type:'fix', glass:'21'},{type:'left', glass:'21'}],
+    qty: 1,
+    params: {profile:'WHS61', hardware:'UNI', note:''}
+  };
+  
+  renderShapeGrid();
+  renderDimFields();
+  setTab('shape');
+}
+
+$('backBtn').onclick = showCart;
+$('addFromEmpty').onclick = showEditor;
+$('addFromList').onclick = showEditor;
+
+$('saveItem').onclick = () => {
+  editor.params.note = $('pNote').value;
+  const p = calcPrice();
+  const sys = SYSTEMS.find(s=>s.id===editor.params.profile);
+  const glass = GLASS_UNITS.find(g=>g.code===editor.params.glass);
+  
+  order.items.push({
+    id: 'item_'+Date.now(),
+    shape: editor.shape,
+    dims: {...editor.dims},
+    cols: editor.cols, rows: editor.rows,
+    colWidths: [...editor.colWidths],
+    rowHeights: [...editor.rowHeights],
+    sections: [...editor.sections],
+    qty: editor.qty,
+    params: {...editor.params},
+    oneEur: p.oneEur,
+    onePrice: p.oneUah,
+    totalPrice: p.totalUah,
+    area: p.area
+  });
+  
+  saveOrder();
+  showCart();
+};
+
+function renderCart(){
+  if(order.items.length === 0){
+    $('cartEmpty').style.display = 'flex';
+    $('cartFilled').style.display = 'none';
+    return;
+  }
+  $('cartEmpty').style.display = 'none';
+  $('cartFilled').style.display = '';
+  
+  $('orderNoChip').textContent = '№ ' + order.orderNo;
+  $('orderDateChip').textContent = dateUA(new Date(order.createdAt));
+  
+  const list = $('itemsList');
+  list.innerHTML = '';
+  let total = 0;
+  
+  order.items.forEach((it, idx) => {
+    total += it.totalPrice;
+    const shapeName = SHAPES.find(s=>s.id===it.shape)?.name || it.shape;
+    const sysName = SYSTEMS.find(s=>s.id===it.params.profile)?.name || '';
+    
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="previewBox">${renderMiniSvg(it)}</div>
+      <div>
+        <div class="itemTitle">${shapeName} ${it.dims.w}×${it.dims.h||it.dims.w}</div>
+        <div class="itemSub">${sysName}</div>
+        <div class="itemSub">${it.cols}×${it.rows} секцій, ${it.area.toFixed(2)} м²</div>
+      </div>
+      <div style="text-align:right">
+        <div class="priceTag">${it.totalPrice.toFixed(2)} грн</div>
+        <div class="muted" style="font-size:11px">${it.qty} × ${it.onePrice.toFixed(2)}</div>
+        <button class="btn btn-danger" style="margin-top:6px" data-del="${it.id}">✕</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+  
+  $('sumTotal').textContent = total.toFixed(2) + ' грн';
+  
+  list.querySelectorAll('[data-del]').forEach(btn => {
+    btn.onclick = () => {
+      if(confirm('Видалити?')){
+        order.items = order.items.filter(x => x.id !== btn.dataset.del);
+        saveOrder();
+        renderCart();
+      }
+    };
+  });
+}
+
+function renderMiniSvg(it){
+  const d = it.dims;
+  const {w, h, r, w2, sideL, sideR} = d;
+  const shape = it.shape;
+  const cols = it.cols || 1;
+  const rows = it.rows || 1;
+  const realH = h || w;
+  const pad = 22;
+  const maxSize = 60;
+  const scale = Math.min(maxSize/w, maxSize/realH);
+  const W = w*scale, H = realH*scale;
+  
+  // Calculate column positions
+  const colWidths = it.colWidths || [];
+  const colPositions = [0];
+  let cumX = 0;
+  for(let i = 0; i < cols; i++) {
+    cumX += (colWidths[i] || w/cols);
+    colPositions.push(cumX);
+  }
+  const colScale = w / cumX;
+  for(let i = 0; i <= cols; i++) colPositions[i] = colPositions[i] * colScale * scale;
+  
+  // Calculate row positions
+  const rowHeights = it.rowHeights || [];
+  const rowPositions = [0];
+  let cumY = 0;
+  for(let i = 0; i < rows; i++) {
+    cumY += (rowHeights[i] || realH/rows);
+    rowPositions.push(cumY);
+  }
+  const rowScale = realH / cumY;
+  for(let i = 0; i <= rows; i++) rowPositions[i] = rowPositions[i] * rowScale * scale;
+  
+  let parts = [];
+  
+  // Arrow marker
+  parts.push(`<defs>
+    <marker id="arr_${it.id}" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1565c0"/>
+    </marker>
+    <clipPath id="clip_${it.id}">${getShapePath(W,H,shape,(r||0)*scale,(w2||w)*scale)}</clipPath>
+  </defs>`);
+  
+  // Background with clip
+  parts.push(`<g clip-path="url(#clip_${it.id})" transform="translate(${pad},${pad})">`);
+  parts.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>`);
+  
+  // Sections with actual positions
+  for(let row=0; row<rows; row++){
+    for(let col=0; col<cols; col++){
+      const idx = row*cols + col;
+      const sec = it.sections?.[idx] || {type:'fix'};
+      const color = SASH_TYPES.find(s=>s.id===sec.type)?.color || '#e3f2fd';
+      const x = colPositions[col];
+      const y = rowPositions[row];
+      const cellW = colPositions[col+1] - colPositions[col];
+      const cellH = rowPositions[row+1] - rowPositions[row];
+      
+      parts.push(`<rect x="${x+1}" y="${y+1}" width="${cellW-2}" height="${cellH-2}" fill="${color}"/>`);
+      
+      // Координати
+      const p = 2;
+      const midLeft = {x: x+p, y: y+cellH/2};
+      const midRight = {x: x+cellW-p, y: y+cellH/2};
+      const midTop = {x: x+cellW/2, y: y+p};
+      const midBottom = {x: x+cellW/2, y: y+cellH-p};
+      const topLeft = {x: x+p, y: y+p};
+      const topRight = {x: x+cellW-p, y: y+p};
+      const bottomLeft = {x: x+p, y: y+cellH-p};
+      const bottomRight = {x: x+cellW-p, y: y+cellH-p};
+      
+      if(sec.type==='left'){
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midRight.x} ${midRight.y} L${topLeft.x} ${topLeft.y}" stroke="#1565c0" stroke-width="1" fill="none"/>`);
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midTop.x} ${midTop.y} L${bottomRight.x} ${bottomRight.y}" stroke="#1565c0" stroke-width="1" fill="none"/>`);
+      }
+      if(sec.type==='right'){
+        parts.push(`<path d="M${bottomRight.x} ${bottomRight.y} L${midLeft.x} ${midLeft.y} L${topRight.x} ${topRight.y}" stroke="#1565c0" stroke-width="1" fill="none"/>`);
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midTop.x} ${midTop.y} L${bottomRight.x} ${bottomRight.y}" stroke="#1565c0" stroke-width="1" fill="none"/>`);
+      }
+      if(sec.type==='top'){
+        parts.push(`<path d="M${bottomLeft.x} ${bottomLeft.y} L${midTop.x} ${midTop.y} L${bottomRight.x} ${bottomRight.y}" stroke="#1565c0" stroke-width="1" fill="none"/>`);
+      }
+      if(sec.type==='bottom'){
+        parts.push(`<path d="M${topLeft.x} ${topLeft.y} L${midBottom.x} ${midBottom.y} L${topRight.x} ${topRight.y}" stroke="#1565c0" stroke-width="1" fill="none"/>`);
+      }
+    }
+  }
+  
+  // Impost lines
+  for(let c=1; c<cols; c++){
+    const x = colPositions[c];
+    parts.push(`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#333" stroke-width="2"/>`);
+  }
+  for(let rr=1; rr<rows; rr++){
+    const y = rowPositions[rr];
+    parts.push(`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#333" stroke-width="2"/>`);
+  }
+  parts.push(`</g>`);
+  
+  // Outline
+  let outline = getShapePath(W, H, shape, (r||0)*scale, (w2||w)*scale);
+  outline = outline.replace(/<(path|rect|ellipse|circle)/g, '<$1 fill="none" stroke="#1565c0" stroke-width="2"');
+  parts.push(`<g transform="translate(${pad},${pad})">${outline}</g>`);
+  
+  // === DIMENSIONS ===
+  const fontSize = 8;
+  const dimColor = '#1565c0';
+  
+  // Width on top
+  parts.push(`<line x1="${pad}" y1="${pad-6}" x2="${pad+W}" y2="${pad-6}" stroke="${dimColor}" stroke-width="0.8" marker-start="url(#arr_${it.id})" marker-end="url(#arr_${it.id})"/>`);
+  parts.push(`<text x="${pad+W/2}" y="${pad-10}" text-anchor="middle" font-size="${fontSize}" font-weight="700" fill="${dimColor}">${w}</text>`);
+  
+  // Height on left
+  if(!['round'].includes(shape)){
+    parts.push(`<line x1="${pad-6}" y1="${pad}" x2="${pad-6}" y2="${pad+H}" stroke="${dimColor}" stroke-width="0.8" marker-start="url(#arr_${it.id})" marker-end="url(#arr_${it.id})"/>`);
+    parts.push(`<text x="${pad-10}" y="${pad+H/2}" text-anchor="middle" font-size="${fontSize}" font-weight="700" fill="${dimColor}" transform="rotate(-90 ${pad-10} ${pad+H/2})">${realH}</text>`);
+  }
+  
+  // Column widths at bottom (if more than 1 column)
+  if(cols > 1) {
+    for(let c=0; c<cols; c++){
+      const x1 = colPositions[c];
+      const x2 = colPositions[c+1];
+      const midX = (x1 + x2) / 2;
+      const cwMm = Math.round((colWidths[c] || w/cols) * colScale);
+      parts.push(`<text x="${pad+midX}" y="${pad+H+10}" text-anchor="middle" font-size="7" font-weight="600" fill="${dimColor}">${cwMm}</text>`);
+    }
+  }
+  
+  const svgW = W + pad*2;
+  const svgH = H + pad*2 + (cols > 1 ? 8 : 0);
+  
+  return `<svg viewBox="0 0 ${svgW} ${svgH}" width="100%" height="100%"><g stroke-linecap="butt" stroke-linejoin="bevel" stroke-miterlimit="2">${parts.join('')}</g></svg>`;
+}
+
+$('clearOrderBtn').onclick = () => {
+  if(confirm('Очистити замовлення?')){
+    order.items = [];
+    order.orderNo = 'WW-'+Math.floor(100000+Math.random()*900000);
+    saveOrder();
+    renderCart();
+  }
+};
+
+// ===== PRINT =====
+$('printBtn').onclick = () => {
+  $('cName').value = order.customer?.name || '';
+  $('cPhone').value = order.customer?.phone || '';
+  $('cAddr').value = order.customer?.addr || '';
+  $('custModal').classList.add('show');
+};
+$('custClose').onclick = $('custCancel').onclick = () => $('custModal').classList.remove('show');
+$('custModal').onclick = e => { if(e.target===$('custModal')) $('custModal').classList.remove('show'); };
+
+// Функція для великого SVG з розмірами для друку
+// ПРАВИЛЬНА візуалізація - секції мають форму вікна
+
+function renderPrintSvg(it){
+  const d = it.dims;
+  const w = d.w;
+  const realH = d.h || d.w;
+  const r = d.r || 0;
+  const w2 = d.w2 || 0;
+
+  const shape = it.shape;
+  const cols = it.cols || 1;
+  const rows = it.rows || 1;
+
+  // Профілі (мм)
+  const FRAME_MM   = 40; // рама
+  const BEAD_MM    = 20; // штапік
+  const IMPOST_MM  = 40; // імпост
+  const SASH_MM    = 58; // стулка (профіль)
+  const OVERLAP_MM = 8;  // нахльост
+
+  // Масштаб: px/mm
+  const maxW = 200, maxH = 200;
+  const scale = Math.min(maxW / w, maxH / realH);
+  const W = w * scale;
+  const H = realH * scale;
+
+  const pad = 35;
+  const ox = pad, oy = pad;
+
+  const frameW   = FRAME_MM   * scale;
+  const beadW    = BEAD_MM    * scale;
+  const impostW  = IMPOST_MM  * scale;
+  const sashW    = SASH_MM    * scale;
+  const overlap  = OVERLAP_MM * scale;
+
+  // "Світловий" прямокутник (всередині рами) – для прямокутника
+  const baseX = ox + frameW;
+  const baseY = oy + frameW;
+  const baseW = Math.max(0, W - 2*frameW);
+  const baseH = Math.max(0, H - 2*frameW);
+
+  // helpers
+  function normPositions(lengths, total, parts){
+    const pos = [0];
+    let sum = 0;
+    for(let i=0;i<parts;i++){
+      sum += (lengths[i] || total/parts);
+      pos.push(sum);
+    }
+    const k = total / sum;
+    for(let i=0;i<pos.length;i++) pos[i] = pos[i] * k;
+    return pos.map(v => v / total);
+  }
+
+  function miterRingRect(x,y,w,h,t,clsOuter,clsInner,drawMiters=true){
+    const x2 = x + w, y2 = y + h;
+    const xi = x + t, yi = y + t;
+    const x2i = x2 - t, y2i = y2 - t;
+
+    // анти-артефакти на кутах для друку (не торкаємось кутів точно)
+    const eps = Math.max(0.6, Math.min(1.8, t * 0.10));
+
+    // ВАЖЛИВО: замість <rect> малюємо 4 лінії (butt cap), щоб не було "вилазіння" на стиках
+    let out = `
+      <g>
+        <!-- outer box -->
+        <line class="${clsOuter} k" x1="${x}"  y1="${y}"  x2="${x2}" y2="${y}"/>
+        <line class="${clsOuter} k" x1="${x2}" y1="${y}"  x2="${x2}" y2="${y2}"/>
+        <line class="${clsOuter} k" x1="${x2}" y1="${y2}" x2="${x}"  y2="${y2}"/>
+        <line class="${clsOuter} k" x1="${x}"  y1="${y2}" x2="${x}"  y2="${y}"/>
+
+        <!-- inner box -->
+        <line class="${clsInner} k" x1="${xi}"  y1="${yi}"  x2="${x2i}" y2="${yi}"/>
+        <line class="${clsInner} k" x1="${x2i}" y1="${yi}"  x2="${x2i}" y2="${y2i}"/>
+        <line class="${clsInner} k" x1="${x2i}" y1="${y2i}" x2="${xi}"  y2="${y2i}"/>
+        <line class="${clsInner} k" x1="${xi}"  y1="${y2i}" x2="${xi}"  y2="${yi}"/>`;
+
+    if(drawMiters){
+      out += `
+        <!-- miters -->
+        <line class="${clsInner} k" x1="${x+eps}"   y1="${y+eps}"   x2="${xi+eps}"   y2="${yi+eps}"/>
+        <line class="${clsInner} k" x1="${x2-eps}"  y1="${y+eps}"   x2="${x2i-eps}"  y2="${yi+eps}"/>
+        <line class="${clsInner} k" x1="${x+eps}"   y1="${y2-eps}"  x2="${xi+eps}"   y2="${y2i-eps}"/>
+        <line class="${clsInner} k" x1="${x2-eps}"  y1="${y2-eps}"  x2="${x2i-eps}"  y2="${y2i-eps}"/>`;
+    }
+
+    out += `
+      </g>`;
+    return out;
+  }
+
+  // polygon offset (convex) для трикутника
+  function polyInset(points, t){
+    if(!t) return points.map(p=>({x:p.x,y:p.y}));
+    const n = points.length;
+
+    function leftNormal(a,b){
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const len = Math.hypot(dx,dy) || 1;
+      return {x: -dy/len, y: dx/len}; // ліворуч від ребра (для CCW це "всередину")
+    }
+    function lineFromPoints(a,b){
+      // line as point + direction
+      return {a, b};
+    }
+    function shiftLine(line, dist){
+      const nrm = leftNormal(line.a, line.b);
+      return {
+        a: {x: line.a.x + nrm.x*dist, y: line.a.y + nrm.y*dist},
+        b: {x: line.b.x + nrm.x*dist, y: line.b.y + nrm.y*dist},
+      };
+    }
+    function intersect(l1, l2){
+      const x1=l1.a.x, y1=l1.a.y, x2=l1.b.x, y2=l1.b.y;
+      const x3=l2.a.x, y3=l2.a.y, x4=l2.b.x, y4=l2.b.y;
+      const den = (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4);
+      if(Math.abs(den) < 1e-9) return {x:x2,y:y2};
+      const px = ((x1*y2-y1*x2)*(x3-x4) - (x1-x2)*(x3*y4-y3*x4))/den;
+      const py = ((x1*y2-y1*x2)*(y3-y4) - (y1-y2)*(x3*y4-y3*x4))/den;
+      return {x:px,y:py};
+    }
+
+    // ensure CCW
+    let area = 0;
+    for(let i=0;i<n;i++){
+      const p=points[i], q=points[(i+1)%n];
+      area += (p.x*q.y - q.x*p.y);
+    }
+    const pts = area>0 ? points : points.slice().reverse();
+
+    const lines = [];
+    for(let i=0;i<n;i++){
+      const a=pts[i], b=pts[(i+1)%n];
+      lines.push(shiftLine(lineFromPoints(a,b), t));
+    }
+    const out = [];
+    for(let i=0;i<n;i++){
+      const prev = lines[(i-1+n)%n];
+      const cur  = lines[i];
+      out.push(intersect(prev, cur));
+    }
+    return out;
+  }
+
+  function polyPath(points){
+    return `M ${points.map(p=>`${p.x} ${p.y}`).join(' L ')} Z`;
+  }
+
+  const parts = [];
+  const clipDefs = [];
+
+  parts.push(`
+  <style>
+    .k{ vector-effect:non-scaling-stroke; shape-rendering:geometricPrecision; stroke-linejoin:miter; stroke-linecap:square;}
+    .outer{ stroke:#000; stroke-width:1.2; fill:none; }
+    .inner{ stroke:#000; stroke-width:0.9; fill:none; }
+    .bead{ stroke:#000; stroke-width:0.7; fill:none; }
+    .glass{ fill:#B0D4E3; stroke:#888; stroke-width:0.4; }
+    .dim{ stroke:#000; stroke-width:0.5; }
+    .dimT{ fill:#000; font-size:10px; font-family:Arial,sans-serif; font-weight:600; }
+    .secBox{ fill:#fff; stroke:#000; stroke-width:0.5; rx:2; ry:2; }
+    .secText{ fill:#000; font-size:12px; font-weight:700; font-family:Arial,sans-serif; }
+    .open{ stroke:#000; stroke-width:0.9; fill:none; }
+  </style>`);
+
+  parts.push(`<defs>
+    <marker id="parr_${it.id}" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#000"/>
+    </marker>
+    <clipPath id="clip_${it.id}">
+      ${getShapeOutline(0,0,W,H,shape,r*scale,w2*scale,'#000',1)
+          .replace('fill="none"','fill="#fff"')
+          .replace('stroke="#000"','stroke="none"')}
+    </clipPath>
+  </defs>`);
+
+  // ===== DRAW (clipped to outer shape) =====
+  parts.push(`<g class="k" transform="translate(${ox},${oy})" clip-path="url(#clip_${it.id})">`);
+
+  // ====== RECT / DEFAULT ======
+  if(shape === 'rect'){
+    // Рама з "зарізами" 45° (помаранчеві відмітки)
+    parts.push(miterRingRect(0,0,W,H,frameW,'outer','inner',true));
+  } else if(shape === 'triangle'){
+    // Трикутник: рама + внутрішній контур (профіль)
+    const A = {x:W/2, y:0};
+    const B = {x:W,   y:H};
+    const C = {x:0,   y:H};
+    const tri0 = [A,B,C];             // CCW
+    const tri1 = polyInset(tri0, frameW);
+
+    parts.push(`<path class="outer k" d="${polyPath(tri0)}"/>`);
+    parts.push(`<path class="inner k" d="${polyPath(tri1)}"/>`);
+
+    // імпост (дві лінії) – вертикально по центру, як у WinCalc
+    const xMid = W/2;
+    const xL = xMid - impostW/2;
+    const xR = xMid + impostW/2;
+
+    function yOnEdge(p,q,x){
+      // assumes segment crosses x
+      if(Math.abs(q.x - p.x) < 1e-9) return p.y;
+      const t = (x - p.x)/(q.x - p.x);
+      return p.y + (q.y - p.y)*t;
+    }
+    const A1 = tri1[0], B1 = tri1[1], C1 = tri1[2];
+    const yTopL = Math.min(yOnEdge(A1,C1,xL), yOnEdge(A1,B1,xL));
+    const yTopR = Math.min(yOnEdge(A1,C1,xR), yOnEdge(A1,B1,xR));
+    const yBot = Math.max(B1.y, C1.y);
+
+    parts.push(`<line class="inner k" x1="${xL}" y1="${yTopL}" x2="${xL}" y2="${yBot}"/>`);
+    parts.push(`<line class="inner k" x1="${xR}" y1="${yTopR}" x2="${xR}" y2="${yBot}"/>`);
+
+    // Секції (2 стулки) всередині рами трикутника
+    const secL = it.sections?.[0] || {type:'fix'};
+    const secR = it.sections?.[1] || {type:'fix'};
+
+    // Беремо 2 трикутники як половини внутрішнього контуру (по центру)
+    const M1 = {x:(B1.x+C1.x)/2, y:(B1.y+C1.y)/2}; // центр низу
+    const triLeft  = [A1, M1, C1];
+    const triRight = [A1, B1, M1];
+
+    function drawFixedInPoly(poly){
+      const pBeadOuter = polyInset(poly, 0);          // по межі секції
+      const pBeadInner = polyInset(poly, beadW);
+      const pGlass     = polyInset(poly, beadW*2);
+
+      parts.push(`<path class="bead k" d="${polyPath(pBeadOuter)}"/>`);
+      parts.push(`<path class="bead k" d="${polyPath(pBeadInner)}"/>`);
+      parts.push(`<path class="glass k" d="${polyPath(pGlass)}"/>`);
+    }
+
+    function drawOpenInPoly(poly, openType){
+      // Стулка (без нахльосту для трикутника – головне профіль/штапік/скло)
+      const pSashOuter = polyInset(poly, 0);
+      const pSashInner = polyInset(poly, sashW);
+
+      // білий профіль стулки (перекриває фонові лінії)
+      parts.push(`<path class="k" fill="#fff" stroke="none" fill-rule="evenodd"
+        d="${polyPath(pSashOuter)} ${polyPath(pSashInner)}"/>`.replace('Z M','Z M'));
+
+      parts.push(`<path class="inner k" d="${polyPath(pSashOuter)}"/>`);
+      parts.push(`<path class="inner k" d="${polyPath(pSashInner)}"/>`);
+
+      // Штапік + скло
+      const pBeadOuter = polyInset(pSashInner, 0);
+      const pBeadInner = polyInset(pSashInner, beadW);
+      const pGlass     = polyInset(pSashInner, beadW*2);
+
+      parts.push(`<path class="bead k" d="${polyPath(pBeadOuter)}"/>`);
+      parts.push(`<path class="bead k" d="${polyPath(pBeadInner)}"/>`);
+      parts.push(`<path class="glass k" d="${polyPath(pGlass)}"/>`);
+
+      // Діагоналі відкривання (приблизно)
+      const bb = pGlass.reduce((acc,p)=>({
+        minX: Math.min(acc.minX,p.x), minY: Math.min(acc.minY,p.y),
+        maxX: Math.max(acc.maxX,p.x), maxY: Math.max(acc.maxY,p.y),
+      }), {minX:1e9,minY:1e9,maxX:-1e9,maxY:-1e9});
+      const gx = bb.minX, gy=bb.minY, gw=bb.maxX-bb.minX, gh=bb.maxY-bb.minY;
+      const p = Math.max(6, Math.min(gw, gh) * 0.12);
+      const left   = gx + p, right = gx + gw - p;
+      const top    = gy + p, bottom= gy + gh - p;
+      const midX = gx + gw/2, midY = gy + gh/2;
+
+      if(openType==='left'){
+        parts.push(`<path class="open k" d="M${left} ${bottom} L${right} ${midY} L${left} ${top}"/>`);
+        parts.push(`<path class="open k" d="M${left} ${bottom} L${midX} ${top} L${right} ${bottom}"/>`);
+      }
+      if(openType==='right'){
+        parts.push(`<path class="open k" d="M${right} ${bottom} L${left} ${midY} L${right} ${top}"/>`);
+        parts.push(`<path class="open k" d="M${left} ${bottom} L${midX} ${top} L${right} ${bottom}"/>`);
+      }
+      if(openType==='top'){
+        parts.push(`<path class="open k" d="M${left} ${bottom} L${midX} ${top} L${right} ${bottom}"/>`);
+      }
+      if(openType==='bottom'){
+        parts.push(`<path class="open k" d="M${left} ${top} L${midX} ${bottom} L${right} ${top}"/>`);
+      }
+    }
+
+    // Малюємо секції
+    if(secL.type==='fix') drawFixedInPoly(triLeft); else drawOpenInPoly(triLeft, secL.type);
+    if(secR.type==='fix') drawFixedInPoly(triRight); else drawOpenInPoly(triRight, secR.type);
+
+    // Номери секцій (центр bbox)
+    function addSecNumber(poly, n){
+      const bb = poly.reduce((acc,p)=>({
+        minX: Math.min(acc.minX,p.x), minY: Math.min(acc.minY,p.y),
+        maxX: Math.max(acc.maxX,p.x), maxY: Math.max(acc.maxY,p.y),
+      }), {minX:1e9,minY:1e9,maxX:-1e9,maxY:-1e9});
+      const cx = (bb.minX+bb.maxX)/2, cy=(bb.minY+bb.maxY)/2;
+      parts.push(`<rect class="secBox k" x="${cx-11}" y="${cy-11}" width="22" height="22"/>`);
+      parts.push(`<text class="secText" x="${cx}" y="${cy+4}" text-anchor="middle">${n}</text>`);
+    }
+    addSecNumber(triLeft,1);
+    addSecNumber(triRight,2);
+
+  } else {
+    // Інші форми (арка) – як було: два контури рами (без мітрів)
+    parts.push(getShapeOutline(0,0,W,H,shape,r*scale,w2*scale,'#000',1.2).replace('fill="none"', 'fill="none" class="outer k"'));
+    parts.push(getShapeOutline(frameW,frameW,W-2*frameW,H-2*frameW,shape,Math.max(0,r*scale-frameW),Math.max(0,w2*scale-2*frameW),'#000',0.9).replace('fill="none"', 'fill="none" class="inner k"'));
+  }
+
+  // ====== RECT SECTIONS (impost + sash overlap) ======
+  if(shape !== 'triangle'){
+    const colNorm = normPositions(it.colWidths || [], w, cols);
+    const rowNorm = normPositions(it.rowHeights || [], realH, rows);
+    const colPx = colNorm.map(t => t * baseW);
+    const rowPx = rowNorm.map(t => t * baseH);
+
+    // імпости
+    for(let c=1;c<cols;c++){
+      const cx = (baseX-ox) + colPx[c];
+      const xL = cx - impostW/2, xR = cx + impostW/2;
+      const yT = (baseY-oy), yB = yT + baseH;
+      parts.push(`<line class="inner k" x1="${xL}" y1="${yT}" x2="${xL}" y2="${yB}"/>`);
+      parts.push(`<line class="inner k" x1="${xR}" y1="${yT}" x2="${xR}" y2="${yB}"/>`);
+    }
+    for(let rr=1; rr<rows; rr++){
+      const cy = (baseY-oy) + rowPx[rr];
+      const yT = cy - impostW/2, yB = cy + impostW/2;
+      const xL = (baseX-ox), xR = xL + baseW;
+      parts.push(`<line class="inner k" x1="${xL}" y1="${yT}" x2="${xR}" y2="${yT}"/>`);
+      parts.push(`<line class="inner k" x1="${xL}" y1="${yB}" x2="${xR}" y2="${yB}"/>`);
+    }
+
+    // секції
+    for(let row=0; row<rows; row++){
+      for(let col=0; col<cols; col++){
+        const idx = row*cols + col;
+        const sec = it.sections?.[idx] || {type:'fix'};
+
+        const x0 = (baseX-ox) + colPx[col]   + (col>0 ? impostW/2 : 0);
+        const x1 = (baseX-ox) + colPx[col+1] - (col<cols-1 ? impostW/2 : 0);
+        const y0 = (baseY-oy) + rowPx[row]   + (row>0 ? impostW/2 : 0);
+        const y1 = (baseY-oy) + rowPx[row+1] - (row<rows-1 ? impostW/2 : 0);
+
+        const cellW = Math.max(0, x1-x0);
+        const cellH = Math.max(0, y1-y0);
+
+        if(sec.type === 'fix'){
+          // штапік+скло в прорізі
+          parts.push(miterRingRect(x0,y0,cellW,cellH,beadW,'bead','bead',true));
+          const gx = x0 + beadW, gy = y0 + beadW;
+          const gw = Math.max(0, cellW - 2*beadW);
+          const gh = Math.max(0, cellH - 2*beadW);
+          parts.push(`<rect class="glass k" x="${gx}" y="${gy}" width="${gw}" height="${gh}"/>`);
+        } else {
+          // відкривне: стулка з нахльостом 8мм на раму/імпост
+          const maxL = (col===0) ? frameW : impostW/2;
+          const maxR = (col===cols-1) ? frameW : impostW/2;
+          const maxT = (row===0) ? frameW : impostW/2;
+          const maxB = (row===rows-1) ? frameW : impostW/2;
+
+          const expL = Math.min(overlap, maxL);
+          const expR = Math.min(overlap, maxR);
+          const expT = Math.min(overlap, maxT);
+          const expB = Math.min(overlap, maxB);
+
+          const sx = x0 - expL;
+          const sy = y0 - expT;
+          const sw = cellW + expL + expR;
+          const sh = cellH + expT + expB;
+
+          // білий профіль стулки (перекриття) – прибирає "сміттєві" дублікати
+          const sxi = sx + sashW, syi = sy + sashW;
+          const swi = Math.max(0, sw - 2*sashW);
+          const shi = Math.max(0, sh - 2*sashW);
+          parts.push(`<path class="k" fill="#fff" stroke="none" fill-rule="evenodd"
+            d="M ${sx} ${sy} h ${sw} v ${sh} h ${-sw} Z
+               M ${sxi} ${syi} h ${swi} v ${shi} h ${-swi} Z"/>`);
+
+          // контур стулки + мітри 45°
+          parts.push(miterRingRect(sx,sy,sw,sh,sashW,'inner','inner',true));
+
+          // ЛІНІЯ СТУЛКИ ПО МІСЦЮ ПРИМИКАННЯ (фіолетова) – шов по межі прорізу
+          // малюємо по сторонам, де є нахльост
+          if(expR>0) parts.push(`<line class="inner k" x1="${x1}" y1="${sy}" x2="${x1}" y2="${sy+sh}"/>`);
+          if(expL>0) parts.push(`<line class="inner k" x1="${x0}" y1="${sy}" x2="${x0}" y2="${sy+sh}"/>`);
+          if(expT>0) parts.push(`<line class="inner k" x1="${sx}" y1="${y0}" x2="${sx+sw}" y2="${y0}"/>`);
+          if(expB>0) parts.push(`<line class="inner k" x1="${sx}" y1="${y1}" x2="${sx+sw}" y2="${y1}"/>`);
+
+          // внутрішній проріз стулки + штапік + скло
+          const bx = sxi, by = syi;
+          const bw = swi, bh = shi;
+
+          parts.push(miterRingRect(bx,by,bw,bh,beadW,'bead','bead',true));
+
+          const gx2 = bx + beadW, gy2 = by + beadW;
+          const gw2 = Math.max(0, bw - 2*beadW);
+          const gh2 = Math.max(0, bh - 2*beadW);
+          parts.push(`<rect class="glass k" x="${gx2}" y="${gy2}" width="${gw2}" height="${gh2}"/>`);
+
+          // відкривання
+          const p = Math.max(6, Math.min(gw2, gh2) * 0.12);
+          const left   = gx2 + p, right = gx2 + gw2 - p;
+          const top    = gy2 + p, bottom= gy2 + gh2 - p;
+          const midX = gx2 + gw2/2, midY = gy2 + gh2/2;
+
+          if(sec.type==='left'){
+            parts.push(`<path class="open k" d="M${left} ${bottom} L${right} ${midY} L${left} ${top}"/>`);
+            parts.push(`<path class="open k" d="M${left} ${bottom} L${midX} ${top} L${right} ${bottom}"/>`);
+          }
+          if(sec.type==='right'){
+            parts.push(`<path class="open k" d="M${right} ${bottom} L${left} ${midY} L${right} ${top}"/>`);
+            parts.push(`<path class="open k" d="M${left} ${bottom} L${midX} ${top} L${right} ${bottom}"/>`);
+          }
+          if(sec.type==='top'){
+            parts.push(`<path class="open k" d="M${left} ${bottom} L${midX} ${top} L${right} ${bottom}"/>`);
+          }
+          if(sec.type==='bottom'){
+            parts.push(`<path class="open k" d="M${left} ${top} L${midX} ${bottom} L${right} ${top}"/>`);
+          }
+        }
+
+        // номер секції
+        const cx = x0 + cellW/2, cy = y0 + cellH/2;
+        parts.push(`<rect class="secBox k" x="${cx-11}" y="${cy-11}" width="22" height="22"/>`);
+        parts.push(`<text class="secText" x="${cx}" y="${cy+4}" text-anchor="middle">${idx+1}</text>`);
+      }
+    }
+  }
+
+  parts.push(`</g>`); // end clipped group
+
+  // ===== DIMENSIONS =====
+  const dimY = oy - 10;
+  parts.push(`<line class="dim k" x1="${ox}" y1="${dimY}" x2="${ox+W}" y2="${dimY}" marker-start="url(#parr_${it.id})" marker-end="url(#parr_${it.id})"/>`);
+  parts.push(`<text class="dimT" x="${ox+W/2}" y="${dimY-4}" text-anchor="middle">${Math.round(w)}</text>`);
+
+  const dimX = ox - 10;
+  parts.push(`<line class="dim k" x1="${dimX}" y1="${oy}" x2="${dimX}" y2="${oy+H}" marker-start="url(#parr_${it.id})" marker-end="url(#parr_${it.id})"/>`);
+  parts.push(`<text class="dimT" x="${dimX-4}" y="${oy+H/2}" text-anchor="end" dominant-baseline="middle">${Math.round(realH)}</text>`);
+
+  // підписи ширин секцій (знизу) – як було
+  if(shape !== 'triangle'){
+    const colNorm = normPositions(it.colWidths || [], w, cols);
+    const colPx2 = colNorm.map(t => t * baseW);
+    for(let c=0;c<cols;c++){
+      const ww = Math.round((colNorm[c+1]-colNorm[c]) * w);
+      const x0 = baseX + colPx2[c];
+      const x1 = baseX + colPx2[c+1];
+      const y = oy + H + 15;
+      parts.push(`<line class="dim k" x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" marker-start="url(#parr_${it.id})" marker-end="url(#parr_${it.id})"/>`);
+      parts.push(`<text class="dimT" x="${(x0+x1)/2}" y="${y+12}" text-anchor="middle">${ww}</text>`);
+    }
+  }
+
+  const svgW = W + pad*2 + 40;
+  const svgH = H + pad*2 + 40;
+  return `<svg viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}">${parts.join('')}</svg>`;
+}
+
+
+function getShapeOutline(x, y, W, H, shape, r, w2, stroke, strokeWidth) {
+  switch(shape) {
+    case 'rect':
+      return `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    case 'triangle':
+      return `<polygon points="${x+W/2},${y} ${x+W},${y+H} ${x},${y+H}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    case 'triangleRight':
+      return `<polygon points="${x},${y} ${x+W},${y+H} ${x},${y+H}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    case 'triangleLeft':
+      return `<polygon points="${x+W},${y} ${x+W},${y+H} ${x},${y+H}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    case 'halfRound':
+    case 'arch':
+      const archR = r || W/2;
+      return `<path d="M ${x} ${y+H} L ${x} ${y+archR} A ${archR} ${archR} 0 0 1 ${x+W} ${y+archR} L ${x+W} ${y+H}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    case 'fullRound':
+    case 'circle':
+      const circleR = Math.min(W, H) / 2;
+      return `<circle cx="${x+W/2}" cy="${y+H/2}" r="${circleR}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    case 'trapezoid':
+      const tw2 = w2 || W * 0.7;
+      const offset = (W - tw2) / 2;
+      return `<polygon points="${x+offset},${y} ${x+offset+tw2},${y} ${x+W},${y+H} ${x},${y+H}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    case 'trapezoidTop':
+      const tw2t = w2 || W * 0.7;
+      const offsett = (W - tw2t) / 2;
+      return `<polygon points="${x},${y} ${x+W},${y} ${x+offsett+tw2t},${y+H} ${x+offsett},${y+H}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    case 'pentagon':
+      return `<polygon points="${x+W/2},${y} ${x+W},${y+H*0.4} ${x+W*0.8},${y+H} ${x+W*0.2},${y+H} ${x},${y+H*0.4}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    case 'hexagon':
+      return `<polygon points="${x+W*0.25},${y} ${x+W*0.75},${y} ${x+W},${y+H/2} ${x+W*0.75},${y+H} ${x+W*0.25},${y+H} ${x},${y+H/2}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    
+    default:
+      return `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+  }
+}
+$('custSave').onclick = () => {
+  order.customer = {name:$('cName').value, phone:$('cPhone').value, addr:$('cAddr').value};
+  saveOrder();
+  $('custModal').classList.remove('show');
+  
+  // Print
+  const total = order.items.reduce((s,x)=>s+x.totalPrice, 0);
+  const totalArea = order.items.reduce((s,x)=>s+x.area*x.qty, 0);
+  const totalQty = order.items.reduce((s,x)=>s+x.qty, 0);
+  
+  const rows = order.items.map((it,i) => {
+    const shapeName = SHAPES.find(s=>s.id===it.shape)?.name || it.shape;
+    const sysName = SYSTEMS.find(s=>s.id===it.params.profile)?.name || '';
+    const hwName = it.params.hardware || '';
+    // Collect unique glass types from sections
+    const glassTypes = [...new Set((it.sections||[]).map(s=>s.glass||'21'))];
+    const glassNames = glassTypes.map(gc => GLASS_UNITS.find(g=>g.code===gc)?.name || gc).join(', ');
+    
+    return `<tr>
+      <td class="num">${i+1}</td>
+      <td class="drawing">${renderPrintSvg(it)}</td>
+      <td class="desc">
+        <table class="inner">
+          <tr><td class="lbl">Тип конструкції:</td><td class="val">${shapeName}</td></tr>
+          <tr><td class="lbl">Профільна система:</td><td class="val">${sysName}</td></tr>
+          <tr><td class="lbl">Ламінація:</td><td class="val">Білий</td></tr>
+          <tr><td class="lbl">Фурнітура:</td><td class="val">${hwName}</td></tr>
+          <tr><td class="lbl">Склопакет:</td><td class="val">${glassNames}</td></tr>
+        </table>
+      </td>
+      <td class="qty">${it.qty} шт.</td>
+      <td class="price">${it.onePrice.toFixed(2)}<br><small>грн.</small></td>
+      <td class="total">${it.totalPrice.toFixed(2)}<br><small>грн.</small></td>
+    </tr>`;
+  }).join('');
+  
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Пропозиція ${order.orderNo}</title>
+<style>
+  body{font-family:Arial,sans-serif;margin:20px;font-size:12px}
+  .header{text-align:center;margin-bottom:20px}
+  .header h1{font-size:18px;margin:10px 0}
+  .info-table{width:50%;margin:0 auto 20px;border-collapse:collapse}
+  .info-table td{border:1px solid #000;padding:4px 10px;text-align:center}
+  .info-table .lbl{background:#f5f5f5;font-weight:bold}
+  table.main{width:100%;border-collapse:collapse;margin-top:10px}
+  table.main th,table.main td{border:1px solid #000;padding:6px;vertical-align:top}
+  table.main th{background:#f5f5f5;font-weight:bold;text-align:center}
+  .num{width:30px;text-align:center}
+  .drawing{width:220px;text-align:center;padding:10px}
+  .desc{text-align:left}
+  .inner{border:none;width:100%}
+  .inner td{border:none;padding:2px 4px}
+  .inner .lbl{font-weight:normal;color:#333;width:120px}
+  .inner .val{font-weight:bold;text-align:right}
+  .qty,.price,.total{text-align:center;width:70px}
+  .summary{text-align:right;margin-top:15px;font-size:14px}
+  .summary b{font-size:16px}
+  svg{max-width:200px}
+</style></head>
+<body>
+<div class="header">
+  <h1>Пропозиція</h1>
+  <table class="info-table">
+    <tr><td class="lbl">Номер замовлення</td><td class="lbl">Дата</td></tr>
+    <tr><td>${order.orderNo}</td><td>${dateUA(new Date(order.createdAt))}</td></tr>
+  </table>
+</div>
+<table class="main">
+  <tr><th class="num">№</th><th class="drawing">Позиція</th><th class="desc">Опис</th><th class="qty">Кількість</th><th class="price">Ціна</th><th class="total">Вартість</th></tr>
+  ${rows}
+</table>
+<div class="summary">
+  ${totalQty} шт., ${totalArea.toFixed(2)} м.кв.<br>
+  <b>${total.toFixed(2)} грн.</b>
+</div>
+<scr` + `ipt>window.print()<\/scr` + `ipt>
+</body></html>`;
+  
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+};
+
+// ===== PROFILE MANAGEMENT =====
+let editingProfileId = null;
+
+function parseMatrixText(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  const result = [];
+  for (const line of lines) {
+    const match = line.match(/(\d+)\s*[×xXхХ*]\s*(\d+)\s*=\s*([\d.,]+)/);
+    if (match) {
+      result.push({
+        w: parseInt(match[1]),
+        h: parseInt(match[2]),
+        price: parseFloat(match[3].replace(',', '.'))
+      });
+    }
+  }
+  return result;
+}
+
+function matrixToText(matrix) {
+  if (!matrix || !Array.isArray(matrix)) return '';
+  return matrix.map(p => `${p.w}×${p.h}=${p.price}`).join('\n');
+}
+
+function renderProfileList() {
+  const container = $('profileList');
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+  html += '<tr style="background:#f5f5f5"><th style="padding:8px;text-align:left;border:1px solid #ddd">ID</th><th style="padding:8px;text-align:left;border:1px solid #ddd">Назва</th><th style="padding:8px;text-align:center;border:1px solid #ddd">Глухе</th><th style="padding:8px;text-align:center;border:1px solid #ddd">+Імпост</th><th style="padding:8px;text-align:center;border:1px solid #ddd">+Стулка</th><th style="padding:8px;border:1px solid #ddd">Дії</th></tr>';
+  
+  for (const id in PRICE_MATRICES) {
+    const p = PRICE_MATRICES[id];
+    const fixCount = p.fix ? p.fix.length : 0;
+    const fixImpCount = p.fixImpost ? p.fixImpost.length : 0;
+    const sashCount = p.sash ? p.sash.length : 0;
+    
+    html += `<tr>
+      <td style="padding:8px;border:1px solid #ddd"><code>${id}</code></td>
+      <td style="padding:8px;border:1px solid #ddd">${p.name || id}</td>
+      <td style="padding:8px;text-align:center;border:1px solid #ddd">${fixCount} точок</td>
+      <td style="padding:8px;text-align:center;border:1px solid #ddd">${fixImpCount} точок</td>
+      <td style="padding:8px;text-align:center;border:1px solid #ddd">${sashCount} точок</td>
+      <td style="padding:8px;border:1px solid #ddd">
+        <button class="btn" onclick="editProfile('${id}')" style="padding:4px 8px;font-size:11px">✎ Редагувати</button>
+        <button class="btn btn-danger" onclick="deleteProfile('${id}')" style="padding:4px 8px;font-size:11px">✕</button>
+      </td>
+    </tr>`;
+  }
+  
+  html += '</table>';
+  container.innerHTML = html;
+}
+
+function showProfileEditor(id = null) {
+  editingProfileId = id;
+  const editor = $('profileEditor');
+  editor.style.display = 'block';
+  
+  if (id && PRICE_MATRICES[id]) {
+    const p = PRICE_MATRICES[id];
+    $('profileEditorTitle').textContent = 'Редагувати профіль: ' + id;
+    $('peId').value = id;
+    $('peId').disabled = true;
+    $('peName').value = p.name || '';
+    $('peFixMatrix').value = matrixToText(p.fix);
+    $('peFixImpostMatrix').value = matrixToText(p.fixImpost);
+    $('peSashMatrix').value = matrixToText(p.sash);
+  } else {
+    $('profileEditorTitle').textContent = 'Новий профіль';
+    $('peId').value = '';
+    $('peId').disabled = false;
+    $('peName').value = '';
+    $('peFixMatrix').value = '500×500=800\n700×700=1200\n900×900=1700\n1200×1200=2600';
+    $('peFixImpostMatrix').value = '500×500=1000\n700×700=1500\n900×900=2100\n1200×1200=3100\n1400×1400=3900';
+    $('peSashMatrix').value = '1000×1000=3600\n1200×1200=4500\n1400×1400=5400\n1600×1600=6500';
+  }
+}
+
+function hideProfileEditor() {
+  $('profileEditor').style.display = 'none';
+  editingProfileId = null;
+}
+
+function saveProfileFromEditor() {
+  const id = $('peId').value.trim().toUpperCase().replace(/\s+/g, '_');
+  const name = $('peName').value.trim();
+  
+  if (!id) {
+    alert('Введіть ID профілю');
+    return;
+  }
+  if (!name) {
+    alert('Введіть назву профілю');
+    return;
+  }
+  
+  const fix = parseMatrixText($('peFixMatrix').value);
+  const fixImpost = parseMatrixText($('peFixImpostMatrix').value);
+  const sash = parseMatrixText($('peSashMatrix').value);
+  
+  if (fix.length === 0 && fixImpost.length === 0 && sash.length === 0) {
+    alert('Додайте хоча б одну точку в матрицю цін');
+    return;
+  }
+  
+  PRICE_MATRICES[id] = { name, fix, fixImpost, sash };
+  saveProfiles(PRICE_MATRICES);
+  updateSystemsFromProfiles();
+  renderProfileSelect();
+  renderProfileList();
+  hideProfileEditor();
+  
+  alert('Профіль збережено!');
+}
+
+function editProfile(id) {
+  showProfileEditor(id);
+}
+
+function deleteProfile(id) {
+  if (Object.keys(PRICE_MATRICES).length <= 1) {
+    alert('Неможливо видалити останній профіль');
+    return;
+  }
+  if (!confirm(`Видалити профіль "${id}"?`)) return;
+  
+  delete PRICE_MATRICES[id];
+  saveProfiles(PRICE_MATRICES);
+  updateSystemsFromProfiles();
+  renderProfileSelect();
+  renderProfileList();
+  
+  // Якщо видалили поточний профіль - вибрати перший доступний
+  if (editor.params.profile === id) {
+    editor.params.profile = Object.keys(PRICE_MATRICES)[0];
+    $('pProfile').value = editor.params.profile;
+    updatePrice();
+  }
+}
+
+function resetProfilesToDefault() {
+  if (!confirm('Скинути всі профілі до дефолтних? Ваші зміни будуть втрачені.')) return;
+  
+  PRICE_MATRICES = JSON.parse(JSON.stringify(DEFAULT_PRICE_MATRICES));
+  saveProfiles(PRICE_MATRICES);
+  updateSystemsFromProfiles();
+  renderProfileSelect();
+  renderProfileList();
+  
+  editor.params.profile = Object.keys(PRICE_MATRICES)[0];
+  $('pProfile').value = editor.params.profile;
+  updatePrice();
+  
+  alert('Профілі скинуто до дефолтних');
+}
+
+function renderProfileSelect() {
+  const select = $('pProfile');
+  if (!select) return;
+  
+  select.innerHTML = SYSTEMS.map(s => 
+    `<option value="${s.id}">${s.name}</option>`
+  ).join('');
+  
+  if (editor.params.profile && PRICE_MATRICES[editor.params.profile]) {
+    select.value = editor.params.profile;
+  } else {
+    editor.params.profile = SYSTEMS[0]?.id || '';
+    select.value = editor.params.profile;
+  }
+}
+
+// Profile modal events
+$('manageProfilesBtn')?.addEventListener('click', () => {
+  renderProfileList();
+  hideProfileEditor();
+  $('profileModal').classList.add('show');
+});
+
+$('profileClose')?.addEventListener('click', () => {
+  $('profileModal').classList.remove('show');
+});
+
+$('addProfileBtn')?.addEventListener('click', () => {
+  showProfileEditor(null);
+});
+
+$('resetProfilesBtn')?.addEventListener('click', resetProfilesToDefault);
+
+$('peSave')?.addEventListener('click', saveProfileFromEditor);
+
+$('peCancel')?.addEventListener('click', hideProfileEditor);
+
+// ===== INIT =====
+renderShapeGrid();
+renderDimFields();
+renderProfileSelect();
+showCart();
+</script>
+</body>
+</html>
