@@ -1,0 +1,41 @@
+.window-calc-app {
+  max-width: 1120px;
+}
+
+.window-calc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.window-calc-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.window-calc-preview {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  background: #f9fafb;
+}
+
+#wc-svg-wrap svg {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #d1d5db;
+  background: #fff;
+}
+
+.window-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.window-kpis .kpi {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+}
