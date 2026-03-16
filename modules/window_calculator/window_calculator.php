@@ -50,76 +50,51 @@ function window_calculator_register_merge_fields($fields)
 
 function window_calculator_render_merge_field_content($value, $mergeField = [], $relation = [])
 {
-    if (is_array($value)) {
-        $field = $value;
-        $fieldKey = isset($field['key']) ? (string) $field['key'] : '';
-
-        if ($fieldKey !== '{window_calculator_visual}') {
-            return $field;
+    $normalize = function ($raw) {
+        if (is_string($raw)) {
+            return $raw;
         }
 
-        $proposalId = isset($field['rel_id']) ? (int) $field['rel_id'] : 0;
-        if ($proposalId < 1) {
-            $field['value'] = '';
-            $field['content'] = '';
-
-            return $field;
+        if (is_scalar($raw)) {
+            return (string) $raw;
         }
 
-        $CI = &get_instance();
-        $CI->load->model('window_calculator/window_calculator_model');
-        $layout = $CI->window_calculator_model->get_by_proposal($proposalId);
+        if (is_array($raw)) {
+            if (isset($raw['value']) && (is_scalar($raw['value']) || $raw['value'] === null)) {
+                return (string) $raw['value'];
+            }
 
-        if (!$layout) {
-            $field['value'] = '';
-            $field['content'] = '';
-
-            return $field;
+            if (isset($raw['content']) && (is_scalar($raw['content']) || $raw['content'] === null)) {
+                return (string) $raw['content'];
+            }
         }
 
-        $title = html_escape((string) $layout['title']);
-        $total = app_format_money((float) $layout['total'], get_base_currency()->name);
-        $svg = (string) $layout['svg_markup'];
-        $html = '<div class="window-calc-proposal"><h4 style="margin-bottom:8px;">' . $title . '</h4>'
-            . '<div style="margin-bottom:8px;">' . $svg . '</div>'
-            . '<p style="margin:0;"><strong>Сума:</strong> ' . $total . '</p></div>';
+        return '';
+    };
 
-        $field['value'] = $html;
-        $field['content'] = $html;
+    $extract = function ($key, $default = '') use ($value, $mergeField, $relation) {
+        foreach ([$mergeField, $relation, $value] as $ctx) {
+            if (is_array($ctx) && array_key_exists($key, $ctx)) {
+                return $ctx[$key];
+            }
+        }
 
-        return $field;
-    }
+        return $default;
+    };
 
-    $key = '';
-    if (is_array($mergeField) && isset($mergeField['key'])) {
-        $key = (string) $mergeField['key'];
-    } elseif (is_array($relation) && isset($relation['key'])) {
-        $key = (string) $relation['key'];
-    }
-
-    if ($key !== '{window_calculator_visual}') {
-        return is_string($value) ? $value : '';
+    $fieldKey = (string) $extract('key', '');
+    if ($fieldKey !== '{window_calculator_visual}') {
+        return $normalize($value);
     }
 
     $proposalId = 0;
-    foreach ([$mergeField, $relation] as $ctx) {
-        if (!is_array($ctx)) {
-            continue;
-        }
-
-        if (!empty($ctx['rel_id'])) {
-            $proposalId = (int) $ctx['rel_id'];
-            break;
-        }
-
-        if (!empty($ctx['proposal_id'])) {
-            $proposalId = (int) $ctx['proposal_id'];
-            break;
-        }
-
-        if (!empty($ctx['id'])) {
-            $proposalId = (int) $ctx['id'];
-            break;
+    foreach (['rel_id', 'proposal_id', 'id'] as $idKey) {
+        $idValue = $extract($idKey, null);
+        if ($idValue !== null && $idValue !== '') {
+            $proposalId = (int) $idValue;
+            if ($proposalId > 0) {
+                break;
+            }
         }
     }
 
@@ -143,3 +118,4 @@ function window_calculator_render_merge_field_content($value, $mergeField = [], 
         . '<div style="margin-bottom:8px;">' . $svg . '</div>'
         . '<p style="margin:0;"><strong>Сума:</strong> ' . $total . '</p></div>';
 }
+
