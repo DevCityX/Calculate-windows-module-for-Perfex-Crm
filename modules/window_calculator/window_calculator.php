@@ -50,6 +50,50 @@ function window_calculator_register_merge_fields($fields)
 
 function window_calculator_render_merge_field_content($value, $mergeField = [], $relation = [])
 {
+    if (is_array($value)) {
+        $field = $value;
+        $fieldKey = isset($field['key']) ? (string) $field['key'] : '';
+
+        if ($fieldKey !== '{window_calculator_visual}') {
+            if (isset($field['value']) && !is_string($field['value'])) {
+                $field['value'] = '';
+            }
+
+            return $field;
+        }
+
+        $proposalId = isset($field['rel_id']) ? (int) $field['rel_id'] : 0;
+        if ($proposalId < 1) {
+            $field['value'] = '';
+            $field['content'] = '';
+
+            return $field;
+        }
+
+        $CI = &get_instance();
+        $CI->load->model('window_calculator/window_calculator_model');
+        $layout = $CI->window_calculator_model->get_by_proposal($proposalId);
+
+        if (!$layout) {
+            $field['value'] = '';
+            $field['content'] = '';
+
+            return $field;
+        }
+
+        $title = html_escape((string) $layout['title']);
+        $total = app_format_money((float) $layout['total'], get_base_currency()->name);
+        $svg = (string) $layout['svg_markup'];
+        $html = '<div class="window-calc-proposal"><h4 style="margin-bottom:8px;">' . $title . '</h4>'
+            . '<div style="margin-bottom:8px;">' . $svg . '</div>'
+            . '<p style="margin:0;"><strong>Сума:</strong> ' . $total . '</p></div>';
+
+        $field['value'] = $html;
+        $field['content'] = $html;
+
+        return $field;
+    }
+
     $key = '';
     if (is_array($mergeField) && isset($mergeField['key'])) {
         $key = $mergeField['key'];
