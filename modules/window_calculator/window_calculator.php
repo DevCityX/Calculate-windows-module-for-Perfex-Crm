@@ -5,7 +5,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 /*
 Module Name: Window Calculator
 Description: Calculator for window constructions with proposal visualization.
-Version: 1.0.0
+Version: 1.0.1
 Requires at least: 2.3.*
 */
 
